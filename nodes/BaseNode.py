@@ -2,7 +2,7 @@
     My BaseNode to define common methods all the nodes need
 """
 
-from polyinterface import Node,LOGGER
+from udi_interface import Node,LOGGER
 from const import NODE_DEF_MAP
 
 class BaseNode(Node):

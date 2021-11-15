@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 # 
-import polyinterface
+from udi_interface import Interface,LOGGER
 import sys
-LOGGER = polyinterface.LOGGER
 
 """ Grab My Controller Node """
 from nodes import CamectController
 
 if __name__ == "__main__":
     try:
-        polyglot = polyinterface.Interface('Camect')
+        polyglot = Interface([])
         polyglot.start()
-        control = CamectController(polyglot)
-        control.runForever()
+        polyglot.updateProfile()
+        polyglot.setCustomParamsDoc()
+        CamectController(polyglot, 'controller', 'controller', 'Camect Controller')
+        polyglot.runForever()
     except (KeyboardInterrupt, SystemExit):
         LOGGER.warning("Received interrupt or exit...")
         polyglot.stop()

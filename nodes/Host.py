@@ -1,7 +1,7 @@
 
 
 import time
-from polyinterface import LOGGER
+from udi_interface import LOGGER
 from nodes import BaseNode
 
 # My Nodes
@@ -17,7 +17,7 @@ class Host(BaseNode):
         {'driver': 'MODE', 'value': 1, 'uom': 25}, 
     ]
 
-    def __init__(self, controller, address, host, camect_obj, new=True):
+    def __init__(self, polyglot, address, host, camect_obj, new=True):
         self.ready      = False
         self.controller = controller
         self.host       = host
@@ -26,7 +26,10 @@ class Host(BaseNode):
         self.cams_by_id = {} # The hash of camera nodes by id
         name = get_valid_node_name('Camect '+self.camect.get_name())
         LOGGER.info(f'address={address} name={name} ')
-        super(Host, self).__init__(controller, address, address, name)
+        super(Host, self).__init__(polyglot, address, address, name)
+
+        polyglot.subscribe(polyglot.START, self.start, address)
+        polyglot.subscribe(polyglot.POLL, self.poll)
 
     def start(self):
         LOGGER.info(f'Started Camect Host {self.address}:{self.name}')
@@ -63,11 +66,9 @@ class Host(BaseNode):
                 #LOGGER.debug(f"{self.lpfx}: Check camera: {cam}")
                 self.cams_by_id[cam['id']].update_status(cam)
 
-    def shortPoll(self):
-        self.update_status()
-
-    def longPoll(self):
-        pass
+    def poll(self, polltype):
+        if 'shortPoll' in polltype:
+            self.update_status()
 
     def query(self,command=None):
         self.update_status()
