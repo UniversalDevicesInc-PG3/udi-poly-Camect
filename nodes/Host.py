@@ -17,7 +17,7 @@ class Host(BaseNode):
         {'driver': 'MODE', 'value': 1, 'uom': 25}, 
     ]
 
-    def __init__(self, polyglot, address, host, camect_obj, new=True):
+    def __init__(self, controller, address, host, camect_obj, new=True):
         self.ready      = False
         self.controller = controller
         self.host       = host
@@ -26,10 +26,10 @@ class Host(BaseNode):
         self.cams_by_id = {} # The hash of camera nodes by id
         name = get_valid_node_name('Camect '+self.camect.get_name())
         LOGGER.info(f'address={address} name={name} ')
-        super(Host, self).__init__(polyglot, address, address, name)
+        super(Host, self).__init__(controller.poly, address, address, name)
 
-        polyglot.subscribe(polyglot.START, self.start, address)
-        polyglot.subscribe(polyglot.POLL, self.poll)
+        controller.poly.subscribe(controller.poly.START, self.start, address)
+        controller.poly.subscribe(controller.poly.POLL, self.poll)
 
     def start(self):
         LOGGER.info(f'Started Camect Host {self.address}:{self.name}')
@@ -68,6 +68,9 @@ class Host(BaseNode):
 
     def poll(self, polltype):
         if 'shortPoll' in polltype:
+            self.shortPoll()
+
+    def shortPoll(self):
             self.update_status()
 
     def query(self,command=None):
@@ -111,7 +114,7 @@ class Host(BaseNode):
         LOGGER.info('{self.lpfx}: Adding saved cameras...')
         for cam in self.controller.get_saved_cameras(self):
             LOGGER.debug(f"{self.lpfx}: Adding cam {cam['node_address']} {cam['name']}")
-            self.cams_by_id[cam['id']] = self.controller.addNode(Camera(self.controller, self, cam['node_address'], cam))
+            self.cams_by_id[cam['id']] = self.controller.poly.addNode(Camera(self.controller, self, cam['node_address'], cam))
 
     def discover(self):
         # TODO: Keep cams_by_id in DB to remember across restarts and discovers...
@@ -122,7 +125,7 @@ class Host(BaseNode):
             if not cam['disabled']:
                 cam_address = self.controller.get_cam_address(cam,self)
                 LOGGER.debug(f"Adding cam {cam_address} {cam['name']}")
-                self.cams_by_id[cam['id']] = self.controller.addNode(Camera(self.controller, self, cam_address, cam))
+                self.cams_by_id[cam['id']] = self.controller.poly.addNode(Camera(self.controller, self, cam_address, cam))
         LOGGER.info('completed')
 
     def enable_alert(self, cam_id):

@@ -11,13 +11,13 @@ class DetectedObject(BaseNode):
         {'driver': 'ST',  'value': 0, 'uom': 2}, # Enabled
     ]
 
-    def __init__(self, polyglot, primary, otype):
+    def __init__(self, controller, primary, otype):
         self.id = otype
         self.map = DETECTED_OBJECT_MAP[otype]
         LOGGER.debug(f"Adding DetectedObject {otype} for {primary.address}:{primary.name}")
         address = f'{primary.address}_{otype}'[:14]
         name    = f'{primary.name} {otype}'
-        super(DetectedObject, self).__init__(polyglot, primary.address, address, name)
+        super(DetectedObject, self).__init__(controller.poly, primary.address, address, name)
         self.dname_to_driver = {}
         self.lpfx = '%s:%s' % (self.address,self.name)
         for obj_name in self.map:
@@ -26,7 +26,7 @@ class DetectedObject(BaseNode):
             # Hash of my detected objects to the driver
             self.dname_to_driver[obj_name] = dv
 
-        polyglot.subscribe(polyglot.START, self.start, address)
+        controller.poly.subscribe(controller.poly.START, self.start, address)
 
     def start(self):
         LOGGER.debug(f'{self.lpfx}')

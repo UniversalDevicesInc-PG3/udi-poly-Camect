@@ -18,10 +18,9 @@ class CamectController(Node):
         self.hb = 0
         self.nodes_by_id = {}
         self.hosts = None
-        self.saved_hosts = None
-        self.saved_cameras = None
-        self.next_host = None
-        self.next_cam = None
+        self.saved_data = {}
+        # Stores the last camera number by parent.address
+        self.last_cam_num = {}
         self.in_discover = False
         self.hosts_connected = 0
         self.config_st = False # Configuration good?
@@ -29,21 +28,25 @@ class CamectController(Node):
         self.__modifiedCustomData = False
         self.__my_drivers = {}
         # Flags to know when all these are processed
+        self.configHandler_st = False
         self.dataHandler_done = False
         self.paramHandler_done = False
         self.typedDataHandler_done = False
         self.start_done = False
-        self.customData = Custom(polyglot, 'customdata')
+        self.Params     = Custom(polyglot, 'customparams')
         polyglot.subscribe(polyglot.START,           self.start, address)
         polyglot.subscribe(polyglot.CUSTOMPARAMS,    self.parameterHandler)
-        polyglot.subscribe(polyglot.CUSTOMDATA,      self.dataHandler)
+        polyglot.subscribe(polyglot.CUSTOMNS,        self.customNS_handler)
         polyglot.subscribe(polyglot.CUSTOMTYPEDDATA, self.typedDataHandler)
+        polyglot.subscribe(polyglot.CONFIGDONE,      self.configDoneHandler)
         polyglot.subscribe(polyglot.POLL,            self.poll)
+        polyglot.subscribe(polyglot.DISCOVER,        self.discover)
 
         polyglot.ready()
         polyglot.addNode(self)
 
-        self.TypedParams = Custom(polyglot, 'customtypedparams')
+        self.TypedData       = Custom(polyglot, 'customtypeddata')
+        self.TypedParams     = Custom(polyglot, 'customtypedparams')
         self.TypedParams.load(
             [
                 {
@@ -64,33 +67,28 @@ class CamectController(Node):
             True
         )
             
-
-    def dataHandler(self, data):
-        LOGGER.debug("Enter config={}".format(data))
-        self.customData.load(data)
-        #self.customData = self.polyConfig['customData']
-        self.saved_cameras = self.customData.get('saved_cameras',{})
-        self.saved_hosts   = self.customData.get('saved_hosts',{})
-        self.next_host     = self.customData.get('next_host',1)
-        self.next_cam      = self.customData.get('next_cam',{})
-        LOGGER.debug(self.customData)
-        LOGGER.warning('saved_hosts={self.saved_hosts}')
-        LOGGER.debug(self.next_cam)
-        self.dataHandler_done = True
-        LOGGER.debug("Exit")
+    def configDoneHandler(self):
+        # This is supposed to only run after we have received and
+        # processed all config data, just add a check here.
+        if not self.start_done:
+            LOGGER.error(f'called before start is done? start_done={self.start_done}')
+        if not self.paramHandler_done:
+            LOGGER.error(f'called before param done? paramHandler_done={self.paramHandler_done}')
+        if not self.typedDataHandler_done:
+            LOGGER.error(f'called bfore typed data done? typedDataHandler_done={self.typedDataHandler_done}')
+        if not self.dataHandler_done:
+            LOGGER.error(f'called before data done? dataHandler_done={self.dataHandler_done}')
+        self.configHandler_st = True
+        if self.user != "" and self.password != "":
+            self.discover()
 
     def parameterHandler(self, params):
+        LOGGER.debug("Enter config={}".format(params))
         self.poly.Notices.clear()
+        self.Params.load(params)
 
-        if 'user' in params:
-            self.user = params['user']
-        else:
-            LOGGER.error('Custom Parameters: "user" not defined in customParams, please add it.')
-
-        if 'password' in params:
-            self.password = params['password']
-        else:
-            LOGGER.error('Custom Parameters: "password" not defined in customParams, please add it.')
+        self.user     = self.Params['user']
+        self.password = self.Params['password']
 
         # Add a notice if they need to change the user/password from the default.
         if self.user == "":
@@ -99,12 +97,11 @@ class CamectController(Node):
             self.poly.Notices['pass'] = 'Please set a proper password.'
 
         self.paramHandler_done = True
-        if self.user != "" and self.password != "":
-            self.discover()
 
     def typedDataHandler(self, typed_data):
         LOGGER.debug("Enter config={}".format(typed_data))
-        self.hosts = typed_data['hosts']
+        self.TypedData.load(typed_data)
+        self.hosts = self.TypedData['hosts']
         self.set_hosts_configured()
         self.typedDataHandler_done = True
         self.discover()
@@ -120,22 +117,9 @@ class CamectController(Node):
         self.discover()
         LOGGER.debug('done')
 
-    def save_custom_data(self,force=False):
-        if self.__modifiedCustomData or force:
-            LOGGER.debug("saving")
-            self.customData['saved_cameras'] = self.saved_cameras
-            self.customData['saved_hosts']   = self.saved_hosts
-            self.customData['next_host']     = self.next_host
-            self.customData['next_cam']      = self.next_cam
-            #self.saveCustomData(self.customData)
-            self.__modifiedCustomData = False
-        #else:
-        #    LOGGER.debug("No save necessary")
-
     def poll(self, polltype):
         if 'shortPoll' in polltype:
             LOGGER.debug('')
-            self.save_custom_data()
             self.set_hosts_connected()
             # Call shortpoll on the camect hosts
             for id,node in self.nodes_by_id.items():
@@ -188,24 +172,103 @@ class CamectController(Node):
         if hmode is not None:
             self.set_mode_by_name(hmode)
 
+    def customNS_handler(self, key, idata):
+        LOGGER.debug(f"Enter key={key} data={idata}")
+        # Why does it send the key and the key'ed data?
+        data = idata[key]
+        #self.customData.load(data)
+        self.saved_data[key] = data
+        if data['type'] == 'cam':
+            last_num = self.last_cam_num.get(data['parent_address'],0)
+            if data['num'] > last_num:
+                self.last_cam_num[data['parent_address']] = data['num']
+        LOGGER.debug(f'last_cam_num = {self.last_cam_num}')
+        self.dataHandler_done = False
+
+
+    def get_saved_hub(self,camect_info):
+        LOGGER.debug(f"camect_info={camect_info}")
+        ret = self.saved_data.get(camect_info['id'],None)
+        LOGGER.debug(f"got={ret}")
+        return ret
+    
+    def add_saved_hub(self,camect_info):
+        id = camect_info['id']
+        LOGGER.debug(f"camect_info={camect_info}")
+        hub_num = self.next_hub_num()
+        ihost = {
+            'type':         'hub',
+            'name':         camect_info['name'],
+            'num':          hub_num,
+            'node_address': f'{hub_num:02d}'
+        }
+        LOGGER.debug(f"append new host: {ihost['node_address']}: {ihost}")
+        self.saved_data[id] = ihost
+        custom = Custom(self.poly,id)
+        custom[id] = ihost
+        return ihost
+
+    def next_hub_num(self):
+        last_hub = 0
+        for key,data in self.saved_data.items():
+            if data['type'] == 'hub':
+                last_hub = int(data['num'])
+        return last_hub + 1
+
+    def get_saved_cam(self,icam):
+        return self.saved_data.get(id,None)
+
+    def get_saved_cameras(self,parent):
+        ret = []
+        for camid, cam in self.saved_data.items():
+            if cam['type'] == 'cam' and cam['parent_address'] == parent.address:
+                ret.append(cam)
+        return ret
+
+    def add_saved_cam(self,icam,parent):
+        ncn = self.next_cam_num(parent.address)
+        icam['type'] = 'cam'
+        icam['num']  = ncn
+        icam['node_address'] = f'{parent.address}_{ncn:03d}'
+        icam['parent_address'] = parent.address
+        LOGGER.debug(f"append new camera for {parent.address} {icam['node_address']}: {icam}")
+        self.saved_data[icam['id']] = icam
+        custom = Custom(self.poly,icam['id'])
+        custom[icam['id']] = icam
+        return icam
+
+    def next_cam_num(self,parent_address):
+        nc = self.last_cam_num.get(parent_address,0) + 1
+        self.last_cam_num[parent_address] = nc
+        return nc
+
+    def get_cam_address(self,icam,parent):
+        """
+        Given a camera dict from Camect API return it's address if saved or 
+        generate new address and save it
+        """
+        if icam['id'] in self.saved_data:
+            address = self.saved_data[icam['id']]['node_address']
+            LOGGER.debug(f"exsting camera for {parent.address} {address} name={icam['name']} saved_name={self.saved_data[icam['id']]['name']}")
+            return address
+        # Stored by parent adress
+        return self.add_saved_cam(icam,parent)['node_address']   
+
     def discover(self):
         if self.config_st:
             LOGGER.warning("discover can't run until config params are set...")
+            return
+        if not self.configHandler_st:
+            LOGGER.error('This should never happen, discover called and configHandler_st={self.configHandler_st}')
             return
         if self.in_discover:
             LOGGER.warning("discover already running.")
             return
         self.in_discover = True
         LOGGER.info(f'starting')
-        while not (self.start_done and self.paramHandler_done and self.typedDataHandler_done and self.dataHandler_done):
-            LOGGER.warning(f'waiting for start_done {self.start_done} and paramHandler_done {self.paramHandler_done} and typedDataHandler_done {self.typedDataHandler_done} and dataHandler_done {self.dataHandler_done}')
-            time.sleep(1)
-        LOGGER.warning(f'start_done={self.start_done} and paramHandler_done={self.paramHandler_done} and typedDataHandler_done={self.typedDataHandler_done} and dataHandler_done={self.dataHandler_done}')
         if self.hosts is None:
             LOGGER.warning("No hosts configured...")
         else:
-            LOGGER.debug(f'saved_hosts={json.dumps(self.saved_hosts,indent=2)}')
-            LOGGER.debug(f'saved_cameras={json.dumps(self.saved_cameras,indent=2)}')
             for host in self.hosts:
                 # Would be better to do this conneciton inside the Host object
                 # but addNode is async so we ned to get the address in this loop
@@ -213,24 +276,21 @@ class CamectController(Node):
                 camect_obj = self.connect_host(host['host'])
                 if camect_obj is not False:
                     camect_info = camect_obj.get_info()
-                    LOGGER.debug(f"saved_hosts={self.saved_hosts}")
-                    if camect_info['id'] in self.saved_hosts:
-                        # Use existing and don't re-discover
-                        new = False
-                        address = self.saved_hosts[camect_info['id']]['node_address']
-                    else:
-                        # Need to discover
+                    hub_info = self.get_saved_hub(camect_info)
+                    if hub_info is None:
                         new = True
-                        address = self.controller.get_host_address(camect_info)
+                        hub_info = self.add_saved_hub(camect_info)
+                    else:
+                        new = False
+                    # Does it need to be added?
                     try:
-                        if not self.poly.getNode(host['host']):
-                            self.nodes_by_id[camect_info['id']] = Host(self.poly, address, host['host'], camect_obj, new=new)
+                        if not self.poly.getNode(hub_info['node_address']):
+                            self.nodes_by_id[camect_info['id']] = Host(self, hub_info['node_address'], host['host'], camect_obj, new)
                             self.poly.addNode(self.nodes_by_id[camect_info['id']])
                     except:
                         LOGGER.error('Failed to add camect host {host}',exc_info=True)
         self.in_discover = False
-
-        self.save_custom_data()
+        LOGGER.info("done")
 
         if self.hosts is None:
             self.set_driver('GV2',0)
@@ -264,48 +324,6 @@ class CamectController(Node):
         LOGGER.info(f'Camect Name={camect_obj.get_name()}')
         LOGGER.debug(f'Camect Info={camect_obj.get_info()}')
         return camect_obj
-
-    def get_cam_address(self,icam,parent):
-        """
-        Given a camera dict from Camect API return it's address if saved or generate new address
-        Does not update customData, so customData must be saved by controller if this is modified.
-        """
-        if icam['id'] in self.saved_cameras:
-            nc = self.saved_cameras[icam['id']]['node_address']
-            LOGGER.debug(f"exsting camera for {parent.address} {nc} name={icam['name']} saved_name={self.saved_cameras[icam['id']]['name']}")
-            return nc
-        # Stored by parent adress
-        nc = self.next_cam.get(parent.address,1)
-        self.next_cam[parent.address] = nc + 1
-        icam['node_address'] = f'{parent.address}_{nc:03d}'
-        icam['parent_address'] = parent.address
-        LOGGER.debug(f"append new camera for {parent.address} {icam['node_address']}: {icam}")
-        self.saved_cameras[icam['id']] = icam
-        self.__modifiedCustomData = True
-        return icam['node_address']   
-
-    def get_saved_cameras(self,parent):
-        ret = []
-        for camid, cam in self.saved_cameras.items():
-            if cam['parent_address'] == parent.address:
-                ret.append(cam)
-        return ret
-
-    def get_host_address(self,ihost):
-        """
-        Given a host dict from Camect API return it's address if saved or generate new address
-        Does not update customData, so customData must be saved by if this is modified.
-        """
-        if ihost['id'] in self.saved_hosts:
-            nh = self.saved_hosts[ihost['id']]
-            LOGGER.debug(f'existing host {hc}')
-            return nh
-        ihost['node_address'] = f'{self.next_host:02d}'
-        self.next_host += 1
-        LOGGER.debug(f"append new host: {ihost['node_address']}: {ihost}")
-        self.saved_hosts[ihost['id']] = ihost
-        self.__modifiedCustomData = True
-        return ihost['node_address']   
 
     def set_hosts_configured(self):
         if self.hosts is None:
