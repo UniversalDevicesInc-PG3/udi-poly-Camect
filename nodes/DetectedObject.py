@@ -1,6 +1,6 @@
 
 from nodes.BaseNode import BaseNode
-from polyinterface import LOGGER
+from udi_interface import LOGGER
 from nodes import BaseNode
 from node_funcs import id_to_address,get_valid_node_name
 from const import DETECTED_OBJECT_MAP
@@ -17,7 +17,7 @@ class DetectedObject(BaseNode):
         LOGGER.debug(f"Adding DetectedObject {otype} for {primary.address}:{primary.name}")
         address = f'{primary.address}_{otype}'[:14]
         name    = f'{primary.name} {otype}'
-        super(DetectedObject, self).__init__(controller, primary.address, address, name)
+        super(DetectedObject, self).__init__(controller.poly, primary.address, address, name)
         self.dname_to_driver = {}
         self.lpfx = '%s:%s' % (self.address,self.name)
         for obj_name in self.map:
@@ -26,17 +26,13 @@ class DetectedObject(BaseNode):
             # Hash of my detected objects to the driver
             self.dname_to_driver[obj_name] = dv
 
+        controller.poly.subscribe(controller.poly.START, self.start, address)
+
     def start(self):
         LOGGER.debug(f'{self.lpfx}')
         self.set_driver('ST',0)
         for dn in self.dname_to_driver:
             self.set_driver(self.dname_to_driver[dn], 0)
-
-    def shortPoll(self):
-        pass
-
-    def longPoll(self):
-        pass
 
     def clear(self):
         if int(self.get_driver('ST')) == 1:

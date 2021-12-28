@@ -1,5 +1,5 @@
 
-from polyinterface import LOGGER
+from udi_interface import LOGGER
 from node_funcs import id_to_address,get_valid_node_name
 from nodes import BaseNode,DetectedObject
 from const import DETECTED_OBJECT_MAP
@@ -8,18 +8,21 @@ class Camera(BaseNode):
     def __init__(self, controller, host, address, cam):
         self.ready = False
         #print("%s(%s) @%s(%s)" % (cam["name"], cam["make"], cam["ip_addr"], cam["mac_addr"]))
+        self.controller = controller
         self.host = host
         self.cam = cam
         self.detected_obj_by_type = {}
-        super(Camera, self).__init__(controller, address, address, get_valid_node_name(cam['name']))
+        super(Camera, self).__init__(controller.poly, address, address, get_valid_node_name(cam['name']))
         self.lpfx = '%s:%s' % (self.address,self.name)
+
+        controller.poly.subscribe(controller.poly.START, self.start, address)
 
     def start(self):
         LOGGER.debug(f'{self.lpfx} Starting...')
         self.update_status(self.cam)
         self.set_driver('ALARM',0)
         for cat in DETECTED_OBJECT_MAP:
-            node = self.controller.addNode(DetectedObject(self.controller, self, cat))
+            node = self.controller.poly.addNode(DetectedObject(self.controller, self, cat))
             # Keep track of which node handles which detected object type.
             for otype in DETECTED_OBJECT_MAP[cat]:
                 self.detected_obj_by_type[otype] = node
