@@ -183,7 +183,7 @@ class CamectController(Node):
             if data['num'] > last_num:
                 self.last_cam_num[data['parent_address']] = data['num']
         LOGGER.debug(f'last_cam_num = {self.last_cam_num}')
-        self.dataHandler_done = False
+        self.dataHandler_done = True
 
 
     def get_saved_hub(self,camect_info):
