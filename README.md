@@ -1,4 +1,4 @@
-# Camect Nodeserver
+# UDI Polyglot V3 Camect Nodeserver
 
 This is a Polyglot Nodeserver for the [Universal Devices](https://www.universal-devices.com/) ISY to integrate the [Camect](http://camect.com) System.
 
@@ -123,6 +123,8 @@ If you have an issue, please add a [udi-poly-Camect gitub issue](https://github.
 
 ## Version History
 
+- 3.0.0: 12/28/2021
+  - Initial PG3 version
 - 0.2.5: 08/14/2021
   - Another attempt to fix simlar crash [Crash due hub not responding](https://github.com/jimboca/udi-poly-Camect/issues/15)
 - 0.2.4:

@@ -1,6 +1,6 @@
 {
     "name": "Camect",
-    "docs": "https://github.com/jimboca/udi-poly-Camect/blob/pg3/README.md",
+    "docs": "https://github.com/UniversalDevicesInc-PG3/udi-poly-Camect/blob/main/README.md",
     "type": "python3",
     "executable": "camect-poly.py",
     "install": "install.sh",

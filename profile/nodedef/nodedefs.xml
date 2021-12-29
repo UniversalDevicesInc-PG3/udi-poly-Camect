@@ -4,7 +4,7 @@
     <nodeDef id="controller" nls="ctl">
         <editors />
         <sts>
-			<st id="ST" editor="bool" />
+			<st id="ST" editor="cst" />
             <st id="MODE" editor="I_HMODEM" /> <!-- Host Mode, MIXED, DEFAULT, HOME -->
             <st id="GV2" editor="I_CNT" /> <!-- Camects Configured -->
             <st id="GV3" editor="I_CNT" /> <!-- Camects Connected -->

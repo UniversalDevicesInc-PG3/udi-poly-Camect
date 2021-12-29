@@ -12,6 +12,11 @@ ST-ctl-GV3-NAME = Camects Connected
 ST-ctl-MODE-NAME = Mode
 CMD-ctl-SET_MODE-NAME = Set Mode
 
+# Controller Status
+CST-0 = Disconnected
+CST-1 = Connected
+CST-2 = Failed
+
 # Debug/Logger Modes
 CDM-9 = Debug + Modules
 CDM-10 = Debug

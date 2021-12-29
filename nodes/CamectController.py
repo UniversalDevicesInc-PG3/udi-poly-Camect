@@ -43,7 +43,7 @@ class CamectController(Node):
         polyglot.subscribe(polyglot.DISCOVER,        self.discover)
 
         polyglot.ready()
-        polyglot.addNode(self)
+        polyglot.addNode(self, conn_status="ST")
 
         self.TypedData       = Custom(polyglot, 'customtypeddata')
         self.TypedParams     = Custom(polyglot, 'customtypedparams')
@@ -392,7 +392,7 @@ class CamectController(Node):
         'SET_MODE': cmd_set_mode
 }
     drivers = [
-        {'driver': 'ST',   'value':  1, 'uom': 2}, 
+        {'driver': 'ST',   'value':  1, 'uom': 25}, 
         {'driver': 'MODE', 'value':  0, 'uom': 25}, # Host Mode of all Hosts
         {'driver': 'GV2',  'value':  0, 'uom': 25}, # Camects Configured
         {'driver': 'GV3',  'value':  0, 'uom': 25}, # Camects Connected
