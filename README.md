@@ -122,7 +122,8 @@ Please discuss issues there, or if you now for sure it is a bug or a good featur
 If you have an issue, please add a [udi-poly-Camect gitub issue](https://github.com/jimboca/udi-poly-Camect/issues) so I can keep track since it is hard to remember issues reported on the Forum.
 
 ## Version History
-
+- 3.0.1: 01/01/2021
+  - Fix crash in query
 - 3.0.0: 12/28/2021
   - Initial PG3 version
 - 0.2.5: 08/14/2021

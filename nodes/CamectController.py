@@ -129,7 +129,7 @@ class CamectController(Node):
             self.heartbeat()
 
     def query(self,command=None):
-        self.check_params()
+        #self.check_params()
         # Call shortpoll on the camect hosts
         for id,node in self.nodes_by_id.items():
             node.query()
