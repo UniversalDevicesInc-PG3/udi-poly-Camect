@@ -29,24 +29,40 @@ class Camera(BaseNode):
         LOGGER.debug(f'{self.lpfx} Done...')
         self.ready = True
 
-    def update_status(self,cam):
-        """
-        Given a cam dict from the Camcect API update all our drivers
-        """
+    def query(self,command=None):
+        self.update_status(self.host.list_camera(self.cam['id']),report=False)
+        self.reportDrivers()
+
+    def update_status(self,cam,report=True):
+        LOGGER.debug(f'{self.lpfx}: cam={cam}')
         LOGGER.debug(f"{self.lpfx}: disabled={cam['disabled']} is_alert_disabled={cam['is_alert_disabled']} is_streaming={cam['is_streaming']}")
-        self.set_driver('ST',0   if cam['disabled']           else 1)
-        self.set_driver('MODE',0 if cam['is_alert_disabled']  else 1)
-        self.set_driver('GPV', 1 if cam['is_streaming']       else 0)
+        self.set_driver('ST',0   if cam['disabled']           else 1, report=report)
+        self.set_driver('MODE',0 if cam['is_alert_disabled']  else 1, report=report)
+        self.set_driver('GPV', 1 if cam['is_streaming']       else 0, report=report)
 
     def callback(self,event):
         # {'type': 'alert', 'desc': 'Out Front Door just saw a person.', 'url': 'https://home.camect.com/home/...', 
         # 'cam_id': '96f69defdef1d0b6602a', 'cam_name': 'Out Front Door', 'detected_obj': ['person']}
+        # {'type': 'alert_disabled', 'cam_id': '96f69defdef1d0b6602a', 'cam_name': 'Out Front Door'}
+        # {'type': 'alert_enabled', 'cam_id': '96f69defdef1d0b6602a', 'cam_name': 'Out Front Door'}
         LOGGER.debug(f"{self.lpfx} type={event['type']}")
         if event['type'] == 'alert':
             if 'detected_obj' in event:
                 self.detected_obj(event['detected_obj'])
             else:
                 LOGGER.error(f"Unknown alert, no detected_obj in {event}")
+        elif event['type'] == 'alert_disabled':
+            self.set_driver('MODE',0)
+        elif event['type'] == 'alert_enabled':
+            self.set_driver('MODE',1)
+        elif event['type'] == 'camera_offline':
+            self.set_driver('ST',0)
+        elif event['type'] == 'camera_online':
+            self.set_driver('ST',1)
+        else:
+            msg = f"Unknown event type {event['type']} in {event}"
+            LOGGER.error(msg)
+            self.controller.poly.Notices['callback'] = msg
 
     def detected_obj(self,object_list):
         LOGGER.debug(f"{self.lpfx} {object_list}")
@@ -87,9 +103,6 @@ class Camera(BaseNode):
         #self.controller.disable_alert(self.cam['id'])
         #self.set_driver('GV0', 0)
         pass
-
-    def query(self,command=None):
-        self.reportDrivers()
 
     hint = [1,2,3,4]
     drivers = [

@@ -87,9 +87,9 @@ A node is created for each Camera.
   - Streaming: If the Camera is streaming
 - The Controls Available:
   - Enabled: [Not possible yet](https://github.com/jimboca/udi-poly-Camect/issues/1)
-  - Alerting: [Not possible yet](https://github.com/jimboca/udi-poly-Camect/issues/2)
+  - Alerting
 
-Note that Alerting is updated immediatly from the Camect API when it is changed, however Enabled and Streaming are not so they are updated on every short poll.  Hopefully Camect will add callbacks for these funcitons in the future.
+Note that Alerting is updated immediatly from the Camect API when it is changed.  Enabled takes a while (3 minutes by default). Streaming is not ever sent so you must query to get that.  Hopefully Camect will add callbacks for these funcitons in the future.
 
 ![A Camera Node](pics/OutFrontDoor.png)
 
@@ -114,14 +114,17 @@ You can add the nodes to a scene to know when a Person shows up [Person Scene](p
 
 ## Discussion Forum
 
-The discussion topic for this nodeserver is at the [UDI Camect Nodeserver V2 Forum](https://forum.universal-devices.com/forum/178-polyglot-v2-camect-nodeserver/)
+The discussion topic for this nodeserver is at the [UDI Camect Nodeserver V2 Forum](https://forum.universal-devices.com/forum/308-camect/)
 Please discuss issues there, or if you now for sure it is a bug or a good feature then add it to issues described below.
 
 ## Issues
 
-If you have an issue, please add a [udi-poly-Camect gitub issue](https://github.com/jimboca/udi-poly-Camect/issues) so I can keep track since it is hard to remember issues reported on the Forum.
+If you have an issue, please add a [udi-poly-Camect gitub issue](https://github.com/UniversalDevicesInc-PG3/udi-poly-Camect/issues) so I can keep track since it is hard to remember issues reported on the Forum.
 
 ## Version History
+- 3.0.2: 02/21/2022
+  - query controller and hub no longer queries all children since doing so creates to much traffic for 3am query
+  - use callbacks for alert enable/disable and camera offline/online instead of polling
 - 3.0.1: 01/01/2021
   - Fix crash in query
 - 3.0.0: 12/28/2021

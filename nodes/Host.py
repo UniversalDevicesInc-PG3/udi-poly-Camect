@@ -29,7 +29,6 @@ class Host(BaseNode):
         super(Host, self).__init__(controller.poly, address, address, name)
 
         controller.poly.subscribe(controller.poly.START, self.start, address)
-        controller.poly.subscribe(controller.poly.POLL, self.poll)
 
     def start(self):
         LOGGER.info(f'Started Camect Host {self.address}:{self.name}')
@@ -51,30 +50,37 @@ class Host(BaseNode):
         self.camect = False
         return []
 
-    #
-    # We need this because camect doesn't have a callback for 
-    # enabled or streaming
-    def update_status(self):
+    def list_camera(self,camid):
+        for cam in self.list_cameras():
+            if cam['id'] == camid:
+                return cam
+        return None
+
+    def update_status(self,cams=False,report=True):
+        LOGGER.debug(f'{self.lpfx} cams={cams} report={report}')
         # Reconnect?
         if self.camect is False:
             LOGGER.warning(f'{self.lpfx}: reconnecting since camect={self.camect}')
             self.camect = self.controller.reconnect_host(self.host)        
         if self.camect is False:
+            self.set_driver('ST',0,report=report)
             return False
-        for cam in self.list_cameras():
-            if cam['id'] in self.cams_by_id:
-                #LOGGER.debug(f"{self.lpfx}: Check camera: {cam}")
-                self.cams_by_id[cam['id']].update_status(cam)
-
-    def poll(self, polltype):
-        if 'shortPoll' in polltype:
-            self.shortPoll()
+        self.set_driver('ST',1,report=report)
+        if cams:
+            LOGGER.debug(f'{self.lpfx} Updating cams... {cams}')
+            for cam in self.list_cameras():
+                if cam['id'] in self.cams_by_id:
+                    #LOGGER.debug(f"{self.lpfx}: Check camera: {cam}")
+                    self.cams_by_id[cam['id']].update_status(cam)
+        return True
 
     def shortPoll(self):
-            self.update_status()
+        # We have to update camera status on because there are no callbacks
+        # for streaming, but disabled for now to reduce traffic.
+        self.update_status(cams=False)
 
     def query(self,command=None):
-        self.update_status()
+        self.update_status(report=False)
         self.reportDrivers()
 
     def set_mode_by_name(self,mname):
@@ -104,7 +110,10 @@ class Host(BaseNode):
                 if event['cam_id'] in self.cams_by_id:
                     self.cams_by_id[event['cam_id']].callback(event)
                 else:
-                    LOGGER.warning(f"{self.lpfx}: Event for unknown cam_id={event['cam_id']}: {event}")
+                    LOGGER.warning(f"{self.lpfx}: Event for unknown cam_id={event['cam_id']} will add it now: {event}")
+                    # Must add the new camera to this host
+                    self.get_and_add_camera(event['cam_id'])
+
             else:
                 LOGGER.error(f'{self.lpfx}: Unknwon event, not type=mode or cam_id: {event}')
         except:
@@ -123,10 +132,16 @@ class Host(BaseNode):
             LOGGER.debug(f"{self.lpfx}: Check camera: {cam}")
             # Only add enabled cameras?
             if not cam['disabled']:
-                cam_address = self.controller.get_cam_address(cam,self)
-                LOGGER.debug(f"Adding cam {cam_address} {cam['name']}")
-                self.cams_by_id[cam['id']] = self.controller.poly.addNode(Camera(self.controller, self, cam_address, cam))
+                self.add_cam(cam)
         LOGGER.info('completed')
+
+    def get_and_add_camera(self,camid):
+        self.add_camera(self.list_camera(camid))
+
+    def add_camera(self,cam):
+        cam_address = self.controller.get_cam_address(cam,self)
+        LOGGER.debug(f"Adding cam {cam_address} {cam['name']}")
+        self.cams_by_id[cam['id']] = self.controller.poly.addNode(Camera(self.controller, self, cam_address, cam))
 
     def enable_alert(self, cam_id):
         LOGGER.info(f"{self.lpfx}: {cam_id}")

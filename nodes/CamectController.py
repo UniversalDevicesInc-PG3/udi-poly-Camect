@@ -129,10 +129,7 @@ class CamectController(Node):
             self.heartbeat()
 
     def query(self,command=None):
-        #self.check_params()
-        # Call shortpoll on the camect hosts
-        for id,node in self.nodes_by_id.items():
-            node.query()
+        self.reportDrivers()
 
     def heartbeat(self):
         if self.hb == 0:
@@ -174,6 +171,9 @@ class CamectController(Node):
 
     def customNS_handler(self, key, idata):
         LOGGER.debug(f"Enter key={key} data={idata}")
+        # We don't care about oauth
+        if key == 'oauth':
+            return
         # Why does it send the key and the key'ed data?
         data = idata[key]
         #self.customData.load(data)
@@ -259,7 +259,7 @@ class CamectController(Node):
             LOGGER.warning("discover can't run until config params are set...")
             return
         if not self.configHandler_st:
-            LOGGER.error('This should never happen, discover called and configHandler_st={self.configHandler_st}')
+            LOGGER.error(f'This should never happen, discover called and configHandler_st={self.configHandler_st}')
             return
         if self.in_discover:
             LOGGER.warning("discover already running.")
