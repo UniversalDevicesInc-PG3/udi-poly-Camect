@@ -174,6 +174,9 @@ class CamectController(Node):
         # We don't care about oauth
         if key == 'oauth':
             return
+        if not key in idata:
+            LOGGER.error(f"Got key={key} which is not in data={idata}")
+            return
         # Why does it send the key and the key'ed data?
         data = idata[key]
         #self.customData.load(data)

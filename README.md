@@ -122,6 +122,8 @@ Please discuss issues there, or if you now for sure it is a bug or a good featur
 If you have an issue, please add a [udi-poly-Camect gitub issue](https://github.com/UniversalDevicesInc-PG3/udi-poly-Camect/issues) so I can keep track since it is hard to remember issues reported on the Forum.
 
 ## Version History
+- 3.0.3: 03/18/2022
+  - Fix sending Commands for all detected objects
 - 3.0.2: 02/21/2022
   - query controller and hub no longer queries all children since doing so creates to much traffic for 3am query
   - use callbacks for alert enable/disable and camera offline/online instead of polling

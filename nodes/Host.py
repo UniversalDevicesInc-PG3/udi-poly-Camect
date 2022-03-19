@@ -132,7 +132,7 @@ class Host(BaseNode):
             LOGGER.debug(f"{self.lpfx}: Check camera: {cam}")
             # Only add enabled cameras?
             if not cam['disabled']:
-                self.add_cam(cam)
+                self.add_camera(cam)
         LOGGER.info('completed')
 
     def get_and_add_camera(self,camid):
