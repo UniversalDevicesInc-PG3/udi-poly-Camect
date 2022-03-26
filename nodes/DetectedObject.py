@@ -43,12 +43,13 @@ class DetectedObject(BaseNode):
 
     # This is called by parent when object is detected
     def turn_on_d(self,driver):
-        LOGGER.debug(f"{self.lpfx}")
+        LOGGER.debug(f"{self.lpfx} driver={driver}")
         if driver == 'DON':
             self.set_driver('ST',1)
         else:
             self.set_driver(driver,1)
-        self.reportCmd(driver,1,2)
+        #self.reportCmd(driver,1,2)
+        self.reportCmd(driver)
 
     # This is called by parent when object is detected
     def turn_on(self,obj):
@@ -62,54 +63,71 @@ class DetectedObject(BaseNode):
         self.reportCmd("DOF",2)
 
     def cmd_on(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('DON')
 
     def cmd_on_0(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV0')
 
     def cmd_on_1(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV1')
 
     def cmd_on_2(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV2')
 
     def cmd_on_3(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV3')
 
     def cmd_on_4(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV4')
 
     def cmd_on_5(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV5')
 
     def cmd_on_6(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV6')
 
     def cmd_on_7(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV7')
 
     def cmd_on_8(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV8')
 
     def cmd_on_9(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV9')
 
     def cmd_on_10(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV10')
 
     def cmd_on_11(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV11')
 
     def cmd_on_12(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV12')
 
     def cmd_on_13(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV13')
 
     def cmd_on_14(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV14')
 
     def cmd_on_15(self, command=None):
+        LOGGER.debug(f"{self.lpfx} command={command}")
         self.turn_on_d('GV15')
 
     def cmd_off(self, command=None):
