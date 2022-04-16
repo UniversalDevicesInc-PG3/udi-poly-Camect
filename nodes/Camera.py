@@ -34,6 +34,9 @@ class Camera(BaseNode):
         self.reportDrivers()
 
     def update_status(self,cam,report=True):
+        if cam is None:
+            LOGGER.errir("Camera info not defined, was it deleted from Camect?  Please report this to the developer")
+            return
         LOGGER.debug(f'{self.lpfx}: cam={cam}')
         LOGGER.debug(f"{self.lpfx}: disabled={cam['disabled']} is_alert_disabled={cam['is_alert_disabled']} is_streaming={cam['is_streaming']}")
         self.set_driver('ST',0   if cam['disabled']           else 1, report=report)
@@ -63,7 +66,7 @@ class Camera(BaseNode):
             msg = f"Unknown event type {event['type']} in {event}"
             LOGGER.error(msg)
             self.controller.poly.Notices['callback'] = msg
-
+            
     def detected_obj(self,object_list):
         LOGGER.debug(f"{self.lpfx} {object_list}")
         # Clear last detected objects

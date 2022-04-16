@@ -41,7 +41,7 @@ class DetectedObject(BaseNode):
             for obj in self.dname_to_driver:
                 self.set_driver(self.dname_to_driver[obj], 0)
 
-    # This is called by parent when object is detected
+    # Used by turn_on and all cmd_on methods
     def turn_on_d(self,driver):
         LOGGER.debug(f"{self.lpfx} driver={driver}")
         if driver == 'DON':
