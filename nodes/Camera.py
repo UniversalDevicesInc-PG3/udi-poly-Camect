@@ -35,7 +35,7 @@ class Camera(BaseNode):
 
     def update_status(self,cam,report=True):
         if cam is None:
-            LOGGER.errir("Camera info not defined, was it deleted from Camect?  Please report this to the developer")
+            LOGGER.error("Camera info not defined, was it deleted from Camect?  Please report this to the developer")
             return
         LOGGER.debug(f'{self.lpfx}: cam={cam}')
         LOGGER.debug(f"{self.lpfx}: disabled={cam['disabled']} is_alert_disabled={cam['is_alert_disabled']} is_streaming={cam['is_streaming']}")

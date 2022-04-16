@@ -122,8 +122,9 @@ Please discuss issues there, or if you now for sure it is a bug or a good featur
 If you have an issue, please add a [udi-poly-Camect gitub issue](https://github.com/UniversalDevicesInc-PG3/udi-poly-Camect/issues) so I can keep track since it is hard to remember issues reported on the Forum.
 
 ## Version History
-- 3.0.5: 04/15/2022
+- 3.0.6: 04/15/2022
   - Skip deleted cameras.
+  - Fixed Typo in above error
 - 3.0.4: 03/25/2022
   - Better fix for sending detected object commands
 - 3.0.3: 03/18/2022
