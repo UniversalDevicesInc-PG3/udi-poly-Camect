@@ -22,7 +22,7 @@
         {
             "title": "Kasa: a NodeServer for ISY and TP-Link Kasa Integration",
             "author": "JimBoCA",
-            "version": "3.0.6",
+            "version": "3.0.7",
             "date": "November 12, 2021",
             "source": "https://github.com/jimboca/udi-poly-Camect/tree/pg3",
             "license": "https://github.com/jimboca/udi-poly-Camect/blob/pg3/LICENSE"
