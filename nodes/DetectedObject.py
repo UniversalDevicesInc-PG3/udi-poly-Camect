@@ -48,7 +48,6 @@ class DetectedObject(BaseNode):
             self.set_driver('ST',1)
         else:
             self.set_driver(driver,1)
-        #self.reportCmd(driver,1,2)
         self.reportCmd(driver)
 
     # This is called by parent when object is detected
@@ -60,7 +59,7 @@ class DetectedObject(BaseNode):
     def turn_off(self,obj):
         LOGGER.debug(f"{self.lpfx}")
         self.set_driver(self.dname_to_driver[obj],0)
-        self.reportCmd("DOF",2)
+        #self.reportCmd("DOF",2)
 
     def cmd_on(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")

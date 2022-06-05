@@ -122,6 +122,10 @@ Please discuss issues there, or if you now for sure it is a bug or a good featur
 If you have an issue, please add a [udi-poly-Camect gitub issue](https://github.com/UniversalDevicesInc-PG3/udi-poly-Camect/issues) so I can keep track since it is hard to remember issues reported on the Forum.
 
 ## Version History
+- 3.0.7: 06/05/2022
+  - Fix: [AttributeError: 'Host' object has no attribute 'save'](https://github.com/UniversalDevicesInc-PG3/udi-poly-Camect/issues/23)
+  - Fix: [Latest version not adding default username and password](https://github.com/UniversalDevicesInc-PG3/udi-poly-Camect/issues/20)
+  - Fix: [Buttons like Dog, Skunk not working](https://github.com/UniversalDevicesInc-PG3/udi-poly-Camect/issues/16)
 - 3.0.6: 04/15/2022
   - Skip deleted cameras.
   - Fixed Typo in above error

@@ -171,8 +171,6 @@ class Host(BaseNode):
     def cmd_discover(self,command):
         LOGGER.debug(f'{self.lpfx}')
         self.discover()
-        if self.save:
-            self.controller.save_custom_data()
 
     commands = {
         'QUERY': query,

@@ -24,6 +24,8 @@ class CamectController(Node):
         self.in_discover = False
         self.hosts_connected = 0
         self.config_st = False # Configuration good?
+        self.user = ''
+        self.password = ''
         # Cross reference of host and camera id's to their node.
         self.__modifiedCustomData = False
         self.__my_drivers = {}
@@ -45,6 +47,7 @@ class CamectController(Node):
         polyglot.ready()
         polyglot.addNode(self, conn_status="ST")
 
+        self.Notices         = Custom(polyglot, 'notices')
         self.TypedData       = Custom(polyglot, 'customtypeddata')
         self.TypedParams     = Custom(polyglot, 'customtypedparams')
         self.TypedParams.load(
@@ -82,21 +85,44 @@ class CamectController(Node):
         if self.user != "" and self.password != "":
             self.discover()
 
-    def parameterHandler(self, params):
-        LOGGER.debug("Enter config={}".format(params))
-        self.poly.Notices.clear()
-        self.Params.load(params)
+    def parameterHandler(self,data):
+        LOGGER.debug("Enter data={}".format(data))
+        # Our defaults, make sure the exist in case user deletes one
+        params = {
+            'user': '',
+            'password': ""
+        }
+        if data is not None:
+            # Load what we have
+           self.Params.load(data)
+
+        # Assume we are good unless something bad is found
+        st = True
+
+        # Make sure all the params exist.
+        for param in params:
+            if data is None or not param in data:
+                LOGGER.error(f'Add back missing param {param}')
+                self.Params[param] = params[param]
+                # Can't do anything else because we will be called again due to param change
+                return
+
+        # Make sure they all have a value that is not the default
+        for param in params:
+            if data[param] == "" or (data[param] == params[param] and param != "current_interval_minutes"):
+                msg = f'Please define {param}'
+                LOGGER.error(msg)
+                self.Notices[param] = msg
+                st = False
+            else:
+                self.Notices.delete(param)
 
         self.user     = self.Params['user']
         self.password = self.Params['password']
 
-        # Add a notice if they need to change the user/password from the default.
-        if self.user == "":
-            self.poly.Notices['user'] = 'Please set a proper user.'
-        if self.password == "":
-            self.poly.Notices['pass'] = 'Please set a proper password.'
+        self.paramHandler_done = st
 
-        self.paramHandler_done = True
+        LOGGER.debug(f'exit: {self.paramHandler_done}')
 
     def typedDataHandler(self, typed_data):
         LOGGER.debug("Enter config={}".format(typed_data))
