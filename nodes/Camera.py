@@ -22,7 +22,8 @@ class Camera(BaseNode):
         self.update_status(self.cam)
         self.set_driver('ALARM',0)
         for cat in DETECTED_OBJECT_MAP:
-            node = self.controller.poly.addNode(DetectedObject(self.controller, self, cat))
+            address = f'{self.address}_{cat}'[:14]
+            node = self.controller.add_node(address,DetectedObject(self.controller, self, address, cat))
             # Keep track of which node handles which detected object type.
             for otype in DETECTED_OBJECT_MAP[cat]:
                 self.detected_obj_by_type[otype] = node

@@ -11,11 +11,10 @@ class DetectedObject(BaseNode):
         {'driver': 'ST',  'value': 0, 'uom': 2}, # Enabled
     ]
 
-    def __init__(self, controller, primary, otype):
+    def __init__(self, controller, primary, address, otype):
         self.id = otype
         self.map = DETECTED_OBJECT_MAP[otype]
-        LOGGER.debug(f"Adding DetectedObject {otype} for {primary.address}:{primary.name}")
-        address = f'{primary.address}_{otype}'[:14]
+        LOGGER.debug(f"Adding DetectedObject {otype} for {primary.address}:{primary.name} address={address}")
         name    = f'{primary.name} {otype}'
         super(DetectedObject, self).__init__(controller.poly, primary.address, address, name)
         self.dname_to_driver = {}
@@ -37,7 +36,7 @@ class DetectedObject(BaseNode):
     def clear(self):
         if int(self.get_driver('ST')) == 1:
             LOGGER.debug(f'{self.lpfx}')
-            self.reportCmd("DOF",2)
+            #self.reportCmd("DOF",2)
             for obj in self.dname_to_driver:
                 self.set_driver(self.dname_to_driver[obj], 0)
 
@@ -46,9 +45,12 @@ class DetectedObject(BaseNode):
         LOGGER.debug(f"{self.lpfx} driver={driver}")
         if driver == 'DON':
             self.set_driver('ST',1)
+            #LOGGER.debug(f"{self.lpfx} reportCmd({driver})")
+            #self.reportCmd(driver)
         else:
             self.set_driver(driver,1)
-        self.reportCmd(driver)
+            #LOGGER.debug(f"{self.lpfx} reportCmd({driver},1.2)")
+            #self.reportCmd(driver,1,2)
 
     # This is called by parent when object is detected
     def turn_on(self,obj):

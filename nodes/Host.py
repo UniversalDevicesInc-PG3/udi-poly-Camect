@@ -113,7 +113,6 @@ class Host(BaseNode):
                     LOGGER.warning(f"{self.lpfx}: Event for unknown cam_id={event['cam_id']} will add it now: {event}")
                     # Must add the new camera to this host
                     self.get_and_add_camera(event['cam_id'])
-
             else:
                 LOGGER.error(f'{self.lpfx}: Unknwon event, not type=mode or cam_id: {event}')
         except:
@@ -123,7 +122,7 @@ class Host(BaseNode):
         LOGGER.info('{self.lpfx}: Adding saved cameras...')
         for cam in self.controller.get_saved_cameras(self):
             LOGGER.debug(f"{self.lpfx}: Adding cam {cam['node_address']} {cam['name']}")
-            self.cams_by_id[cam['id']] = self.controller.poly.addNode(Camera(self.controller, self, cam['node_address'], cam))
+            self.cams_by_id[cam['id']] = self.controller.add_node(cam['node_address'],Camera(self.controller, self, cam['node_address'], cam))
 
     def discover(self):
         # TODO: Keep cams_by_id in DB to remember across restarts and discovers...
@@ -141,7 +140,7 @@ class Host(BaseNode):
     def add_camera(self,cam):
         cam_address = self.controller.get_cam_address(cam,self)
         LOGGER.debug(f"Adding cam {cam_address} {cam['name']}")
-        self.cams_by_id[cam['id']] = self.controller.poly.addNode(Camera(self.controller, self, cam_address, cam))
+        self.cams_by_id[cam['id']] = self.controller.add_node(cam_address,Camera(self.controller, self, cam_address, cam))
 
     def enable_alert(self, cam_id):
         LOGGER.info(f"{self.lpfx}: {cam_id}")

@@ -11,11 +11,12 @@ from const import HOST_MODE_MAP,NODE_DEF_MAP
 #LOG_HANDLER.set_log_format('%(asctime)s %(threadName)-10s %(name)-18s %(levelname)-8s %(module)s:%(funcName)s: %(message)s')
 
 class CamectController(Node):
-    def __init__(self, polyglot, primary, address, name):
-        super(CamectController, self).__init__(polyglot, primary, address, name)
-        self.poly = polyglot
+    def __init__(self, poly, primary, address, name):
+        super(CamectController, self).__init__(poly, primary, address, name)
+        self.poly = poly
         self.name = 'Camect Controller'
         self.hb = 0
+        self.n_queue = []
         self.nodes_by_id = {}
         self.hosts = None
         self.saved_data = {}
@@ -35,21 +36,21 @@ class CamectController(Node):
         self.paramHandler_done = False
         self.typedDataHandler_done = False
         self.start_done = False
-        self.Params     = Custom(polyglot, 'customparams')
-        polyglot.subscribe(polyglot.START,           self.start, address)
-        polyglot.subscribe(polyglot.CUSTOMPARAMS,    self.parameterHandler)
-        polyglot.subscribe(polyglot.CUSTOMNS,        self.customNS_handler)
-        polyglot.subscribe(polyglot.CUSTOMTYPEDDATA, self.typedDataHandler)
-        polyglot.subscribe(polyglot.CONFIGDONE,      self.configDoneHandler)
-        polyglot.subscribe(polyglot.POLL,            self.poll)
-        polyglot.subscribe(polyglot.DISCOVER,        self.discover)
+        self.Params     = Custom(poly, 'customparams')
+        poly.subscribe(poly.START,           self.start, address)
+        poly.subscribe(poly.CUSTOMPARAMS,    self.parameterHandler)
+        poly.subscribe(poly.CUSTOMNS,        self.customNS_handler)
+        poly.subscribe(poly.CUSTOMTYPEDDATA, self.typedDataHandler)
+        poly.subscribe(poly.POLL,            self.poll)
+        poly.subscribe(poly.DISCOVER,        self.discover)
+        poly.subscribe(poly.ADDNODEDONE,     self.node_queue)
 
-        polyglot.ready()
-        polyglot.addNode(self, conn_status="ST")
+        poly.ready()
+        poly.addNode(self, conn_status="ST")
 
-        self.Notices         = Custom(polyglot, 'notices')
-        self.TypedData       = Custom(polyglot, 'customtypeddata')
-        self.TypedParams     = Custom(polyglot, 'customtypedparams')
+        self.Notices         = Custom(poly, 'notices')
+        self.TypedData       = Custom(poly, 'customtypeddata')
+        self.TypedParams     = Custom(poly, 'customtypedparams')
         self.TypedParams.load(
             [
                 {
@@ -69,28 +70,60 @@ class CamectController(Node):
             ],
             True
         )
-            
-    def configDoneHandler(self):
-        # This is supposed to only run after we have received and
-        # processed all config data, just add a check here.
-        if not self.start_done:
-            LOGGER.error(f'called before start is done? start_done={self.start_done}')
-        if not self.paramHandler_done:
-            LOGGER.error(f'called before param done? paramHandler_done={self.paramHandler_done}')
-        if not self.typedDataHandler_done:
-            LOGGER.error(f'called bfore typed data done? typedDataHandler_done={self.typedDataHandler_done}')
-        if not self.dataHandler_done:
-            LOGGER.error(f'called before data done? dataHandler_done={self.dataHandler_done}')
-        self.configHandler_st = True
+
+    '''
+    node_queue() and wait_for_node_event() create a simple way to wait
+    for a node to be created.  The nodeAdd() API call is asynchronous and
+    will return before the node is fully created. Using this, we can wait
+    until it is fully created before we try to use it.
+    '''
+    def node_queue(self, data):
+        self.n_queue.append(data['address'])
+        # Start up ELK connection when controller node is all done being added.
+        if (data['address'] == self.address):
+            self.add_node_done()
+
+
+    def wait_for_node_done(self):
+        while len(self.n_queue) == 0:
+            time.sleep(0.1)
+        self.n_queue.pop()
+
+    def add_node(self,address,node):
+        # See if we need to check for node name changes where ELK is the source
+        cname = self.poly.getNodeNameFromDb(address)
+        if cname is not None:
+            LOGGER.debug(f"node {address} Requested: '{node.name}' Current: '{cname}'")
+            # Check that the name matches
+            if node.name != cname:
+                if self.Params['change_node_names'] == 'true':
+                    LOGGER.warning(f"Existing node name '{cname}' for {address} does not match requested name '{node.name}', changing to match")
+                    self.poly.renameNode(address,node.name)
+                else:
+                    LOGGER.warning(f"Existing node name '{cname}' for {address} does not match requested name '{node.name}', NOT changing to match, set change_node_names=true to enable")
+                    # Change it to existing name to avoid addNode error
+                    node.name = cname
+        LOGGER.debug(f"Adding: {node.name}")
+        self.poly.addNode(node)
+        self.wait_for_node_done()
+        gnode = self.poly.getNode(address)
+        if gnode is None:
+            LOGGER.error('Failed to add node address')
+        return node
+
+    def add_node_done(self):
+        LOGGER.debug("start")
         if self.user != "" and self.password != "":
             self.discover()
+        LOGGER.debug("done")
 
     def parameterHandler(self,data):
         LOGGER.debug("Enter data={}".format(data))
         # Our defaults, make sure the exist in case user deletes one
         params = {
             'user': '',
-            'password': ""
+            'password': "",
+            'change_node_names': "false"
         }
         if data is not None:
             # Load what we have
@@ -109,7 +142,7 @@ class CamectController(Node):
 
         # Make sure they all have a value that is not the default
         for param in params:
-            if data[param] == "" or (data[param] == params[param] and param != "current_interval_minutes"):
+            if data[param] == "" or (data[param] == params[param] and param != "change_node_names"):
                 msg = f'Please define {param}'
                 LOGGER.error(msg)
                 self.Notices[param] = msg
@@ -287,9 +320,6 @@ class CamectController(Node):
         if self.config_st:
             LOGGER.warning("discover can't run until config params are set...")
             return
-        if not self.configHandler_st:
-            LOGGER.error(f'This should never happen, discover called and configHandler_st={self.configHandler_st}')
-            return
         if self.in_discover:
             LOGGER.warning("discover already running.")
             return
@@ -315,7 +345,7 @@ class CamectController(Node):
                     try:
                         if not self.poly.getNode(hub_info['node_address']):
                             self.nodes_by_id[camect_info['id']] = Host(self, hub_info['node_address'], host['host'], camect_obj, new)
-                            self.poly.addNode(self.nodes_by_id[camect_info['id']])
+                            self.add_node(hub_info['node_address'],self.nodes_by_id[camect_info['id']])
                     except:
                         LOGGER.error('Failed to add camect host {host}',exc_info=True)
         self.in_discover = False
