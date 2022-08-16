@@ -130,7 +130,7 @@ It is always recommended to use "Control" events when writing programs, so when 
 ## Version History
 - 3.0.9: 08/15/2022
   - Work around a bug in IoP which reports Control events when Status is changed to either True or False.
-    - See [Iop 5.4.4 Bug](#IOP-5.4.4-Bug)
+    - See [Iop 5.4.4 Bug](#IOP-544-Bug)
 - 3.0.8: 06/06/2022
   - Throttle node adds 
   - Add change_node_names user paramater to allow Camect camera names to always be the source, on restart/discover names will change on ISY.
