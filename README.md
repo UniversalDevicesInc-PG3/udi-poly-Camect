@@ -121,7 +121,7 @@ Please discuss issues there, or if you now for sure it is a bug or a good featur
 
 If you have an issue, please add a [udi-poly-Camect gitub issue](https://github.com/UniversalDevicesInc-PG3/udi-poly-Camect/issues) so I can keep track since it is hard to remember issues reported on the Forum.
 
-### IOP Bug
+### IOP 5.4.4 Bug
 
 There is a confirmed bug in IoP verison 5.4.4 which should hopefully be fixed soon, but for now this node server has implemented a workaround.  The bug is that when a node server sends a "Status" event (either True or False) for a Detected Object, the IoP will see this as a "Control" event.  Due to this the node server sends a Status event when it first sees the object, and Control events from then on.  Also, it will never set detected object status's to False due to this bug.
 
