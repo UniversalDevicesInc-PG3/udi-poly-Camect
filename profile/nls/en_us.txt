@@ -94,6 +94,7 @@ OBJ-29 = person and dog
 # Object: Human
 #
 ND-human-NAME = Human Detection
+ST-human-ST-NAME  = Detected
 ST-human-GV0-NAME = Santa Claus
 ST-human-GV1-NAME = Person
 CMD-human-GV0-NAME = Santa Claus
@@ -102,6 +103,7 @@ CMD-human-GV1-NAME = Person
 # Object: Vehicle
 #
 ND-vehicle-NAME = Vehicle Detection
+ST-vehicle-ST-NAME  = Detected
 ST-vehicle-GV0-NAME = Amazon
 ST-vehicle-GV1-NAME = DHL
 ST-vehicle-GV2-NAME = FedEx
@@ -130,6 +132,7 @@ CMD-vehicle-GV11-NAME = Truck
 # Object: Animal
 #
 ND-animal-NAME = Animal Detection
+ST-animal-ST-NAME  = Detected
 ST-animal-GV0-NAME = Bear
 ST-animal-GV1-NAME = Bird
 ST-animal-GV2-NAME = Cat
@@ -158,6 +161,7 @@ CMD-animal-GV11-NAME = Unknown Small Animal
 # Object: Insect
 #
 ND-insect-NAME = Insect Detection
+ST-insect-ST-NAME  = Detected
 ST-insect-GV0-NAME = Fly
 ST-insect-GV1-NAME = Spider
 CMD-insect-GV0-NAME = Fly

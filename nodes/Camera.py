@@ -14,7 +14,6 @@ class Camera(BaseNode):
         self.detected_obj_by_type = {}
         super(Camera, self).__init__(controller.poly, address, address, get_valid_node_name(cam['name']))
         self.lpfx = '%s:%s' % (self.address,self.name)
-
         controller.poly.subscribe(controller.poly.START, self.start, address)
 
     def start(self):
@@ -38,11 +37,13 @@ class Camera(BaseNode):
         if cam is None:
             LOGGER.error("Camera info not defined, was it deleted from Camect?  Please report this to the developer")
             return
-        LOGGER.debug(f'{self.lpfx}: cam={cam}')
-        LOGGER.debug(f"{self.lpfx}: disabled={cam['disabled']} is_alert_disabled={cam['is_alert_disabled']} is_streaming={cam['is_streaming']}")
+        #LOGGER.debug(f'{self.lpfx}: cam={cam}')
+        #LOGGER.debug(f"{self.lpfx}: disabled={cam['disabled']} is_alert_disabled={cam['is_alert_disabled']} is_streaming={cam['is_streaming']}")
         self.set_driver('ST',0   if cam['disabled']           else 1, report=report)
         self.set_driver('MODE',0 if cam['is_alert_disabled']  else 1, report=report)
         self.set_driver('GPV', 1 if cam['is_streaming']       else 0, report=report)
+        # TODO: Need a way to know how long a value has been true, so we don't cause a race condition...
+        self.set_driver('ALARM', 0)
 
     def callback(self,event):
         # {'type': 'alert', 'desc': 'Out Front Door just saw a person.', 'url': 'https://home.camect.com/home/...', 
@@ -71,13 +72,14 @@ class Camera(BaseNode):
     def detected_obj(self,object_list):
         LOGGER.debug(f"{self.lpfx} {object_list}")
         # Clear last detected objects
+        # Moved this to detected object to clear itself if already on
         # TODO: Would be better to timout and clear these during a short poll, but allow for user specified timeout?
-        for cat in DETECTED_OBJECT_MAP:
-            for otype in DETECTED_OBJECT_MAP[cat]:
-                if otype in self.detected_obj_by_type:
-                    self.detected_obj_by_type[otype].clear()
-                else:
-                    LOGGER.error(f"Internal error, no {otype} in dectected_obj_by_type dict?")
+        #for cat in DETECTED_OBJECT_MAP:
+        #    for otype in DETECTED_OBJECT_MAP[cat]:
+        #        if otype in self.detected_obj_by_type:
+        #            self.detected_obj_by_type[otype].clear()
+        #        else:
+        #            LOGGER.error(f"Internal error, no {otype} in dectected_obj_by_type dict?")
         # And set the current ones
         for obj in object_list:
             if obj in self.detected_obj_by_type:
@@ -114,34 +116,6 @@ class Camera(BaseNode):
         {'driver': 'ALARM', 'value': 0, 'uom': 2}, # Detected
         {'driver': 'MODE', 'value': 0, 'uom': 2}, # Alerting
         {'driver': 'GPV', 'value': 0, 'uom': 2}, # Streaming
-        {'driver': 'GV0', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV1', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV2', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV3', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV4', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV5', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV6', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV7', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV8', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV9', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV10', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV11', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV12', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV13', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV14', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV15', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV16', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV17', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV18', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV19', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV20', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV21', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV22', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV23', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV24', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV25', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV26', 'value': 0, 'uom': 2}, # 
-        {'driver': 'GV27', 'value': 0, 'uom': 2}, # 
         ]
     id = 'camera'
     commands = {

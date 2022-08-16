@@ -43,6 +43,5 @@ class BaseNode(Node):
             return None
         return val
 
-
     def get_driver(self,mdrv):
-        return self.__my_drivers[mdrv] if mdrv in self.__my_drivers else None
+        return self.__my_drivers[mdrv] if mdrv in self.__my_drivers else self.getDriver(mdrv)

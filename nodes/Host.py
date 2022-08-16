@@ -27,7 +27,6 @@ class Host(BaseNode):
         name = get_valid_node_name('Camect '+self.camect.get_name())
         LOGGER.info(f'address={address} name={name} ')
         super(Host, self).__init__(controller.poly, address, address, name)
-
         controller.poly.subscribe(controller.poly.START, self.start, address)
 
     def start(self):
@@ -77,7 +76,7 @@ class Host(BaseNode):
     def shortPoll(self):
         # We have to update camera status on because there are no callbacks
         # for streaming, but disabled for now to reduce traffic.
-        self.update_status(cams=False)
+        self.update_status(cams=True,report=True)
 
     def query(self,command=None):
         self.update_status(report=False)
@@ -122,7 +121,11 @@ class Host(BaseNode):
         LOGGER.info('{self.lpfx}: Adding saved cameras...')
         for cam in self.controller.get_saved_cameras(self):
             LOGGER.debug(f"{self.lpfx}: Adding cam {cam['node_address']} {cam['name']}")
-            self.cams_by_id[cam['id']] = self.controller.add_node(cam['node_address'],Camera(self.controller, self, cam['node_address'], cam))
+            # Get the current info about the cam
+            ccam = self.list_camera(cam['id'])
+            if ccam is None:
+                LOGGER.error(f"{self.lpfx}: Saved camera is no longer listed in this Hub: {cam}")
+            self.cams_by_id[cam['id']] = self.controller.add_node(cam['node_address'],Camera(self.controller, self, cam['node_address'], ccam))
 
     def discover(self):
         # TODO: Keep cams_by_id in DB to remember across restarts and discovers...

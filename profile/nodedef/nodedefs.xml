@@ -71,6 +71,7 @@
     <nodeDef id="human" nls="human">
         <editors />
         <sts>
+            <st id="ST"   editor="bool" /> <!-- Any Object -->
             <st id="GV0"  editor="bool" /> <!-- Person -->
             <st id="GV1"  editor="bool" /> <!-- Santa Claus -->
         </sts>
@@ -94,6 +95,7 @@
     <nodeDef id="vehicle" nls="vehicle">
         <editors />
         <sts>
+            <st id="ST"   editor="bool" /> <!-- Any Object -->
             <st id="GV0"  editor="bool" /> <!-- Amazon -->
             <st id="GV1"  editor="bool" /> <!-- UPS -->
             <st id="GV2"  editor="bool" /> <!-- USPS-->
@@ -147,6 +149,7 @@
     <nodeDef id="animal" nls="animal">
         <editors />
         <sts>
+            <st id="ST"   editor="bool" /> <!-- Any Object -->
             <st id="GV0"  editor="bool" /> <!-- Bear -->
             <st id="GV1"  editor="bool" /> <!-- Bird -->
             <st id="GV2"  editor="bool" /> <!-- Cat -->
@@ -200,6 +203,7 @@
     <nodeDef id="insect" nls="insect">
         <editors />
         <sts>
+            <st id="ST"  editor="bool" /> <!-- Any Object -->
             <st id="GV0" editor="bool" /> <!-- Fly -->
             <st id="GV1" editor="bool" /> <!-- Spider -->
         </sts>

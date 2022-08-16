@@ -12,7 +12,7 @@
     "cloud": false,
     "prem": true,
     "discover": true,
-    "profile_version": "3.0.0",
+    "profile_version": "3.0.9",
 	"customParams": {
 		"user": "",
 		"password": ""

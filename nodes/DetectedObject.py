@@ -3,7 +3,7 @@ from nodes.BaseNode import BaseNode
 from udi_interface import LOGGER
 from nodes import BaseNode
 from node_funcs import id_to_address,get_valid_node_name
-from const import DETECTED_OBJECT_MAP
+from const import DETECTED_OBJECT_MAP,HAS_ST_BUG
 
 class DetectedObject(BaseNode):
     id = 'objdet' # Placeholder, gets overwritten in __init__
@@ -19,38 +19,69 @@ class DetectedObject(BaseNode):
         super(DetectedObject, self).__init__(controller.poly, primary.address, address, name)
         self.dname_to_driver = {}
         self.lpfx = '%s:%s' % (self.address,self.name)
+        pdrv = dict()
+        if HAS_ST_BUG:
+            odrivers = controller.poly.db_getNodeDrivers(address)
+            LOGGER.debug(f"{self.lpfx} odrivers={odrivers}")
+            if odrivers is not None:
+                for odrv in odrivers:
+                    pdrv[odrv['driver']] = odrv['value']
         for obj_name in self.map:
             dv = 'GV' + str(self.map[obj_name]['num'])
-            self.drivers.append({'driver':  dv, 'value': 0, 'uom': 2})
+            val = pdrv[dv] if dv in pdrv else 0
+            self.drivers.append({'driver':  dv, 'value': val, 'uom': 2})
             # Hash of my detected objects to the driver
             self.dname_to_driver[obj_name] = dv
-
         controller.poly.subscribe(controller.poly.START, self.start, address)
 
     def start(self):
         LOGGER.debug(f'{self.lpfx}')
-        self.set_driver('ST',0)
-        for dn in self.dname_to_driver:
-            self.set_driver(self.dname_to_driver[dn], 0)
+        if not HAS_ST_BUG:
+            self.clear(report=False)
+            self.reportDrivers()
 
-    def clear(self):
-        if int(self.get_driver('ST')) == 1:
+    def clear(self,report=True,force=False):
+        LOGGER.debug(f"{self.lpfx} report={report} force={force} ST={self.get_driver('ST')}")
+        if force or self.get_driver('ST') is None or int(self.get_driver('ST')) == 1:
             LOGGER.debug(f'{self.lpfx}')
+            self.set_driver('ST', 0, report=report)
             #self.reportCmd("DOF",2)
             for obj in self.dname_to_driver:
-                self.set_driver(self.dname_to_driver[obj], 0)
+                self.set_driver(self.dname_to_driver[obj], 0, report=report)
 
     # Used by turn_on and all cmd_on methods
     def turn_on_d(self,driver):
         LOGGER.debug(f"{self.lpfx} driver={driver}")
         if driver == 'DON':
-            self.set_driver('ST',1)
-            #LOGGER.debug(f"{self.lpfx} reportCmd({driver})")
-            #self.reportCmd(driver)
+            # Due to a bug in current version of ISY 5.4.4 when
+            # we send Status, it triggers a Control program so
+            # if status is already on, just send a control.
+            if (int(self.get_driver('ST')) == 0):
+                self.set_driver('ST',1)
+            else:
+                # Already on, send a Control
+                LOGGER.debug(f"{self.lpfx} reportCmd({driver})")
+                self.reportCmd(driver)
         else:
-            self.set_driver(driver,1)
-            #LOGGER.debug(f"{self.lpfx} reportCmd({driver},1.2)")
-            #self.reportCmd(driver,1,2)
+            if HAS_ST_BUG:
+                if int(self.get_driver(driver)) == 0:
+                    # ST means something detected
+                    self.set_driver('ST',1)
+                    self.set_driver(driver,1)
+                else:
+                    # Send a Control
+                    LOGGER.debug(f"{self.lpfx} reportCmd({driver},1.2)")
+                    self.reportCmd(driver,1,2)
+            else: 
+                # Clear all drivers
+                if int(self.get_driver('ST')) == 1:
+                    self.clear()
+                # ST means something detected
+                self.set_driver('ST',1)
+                self.set_driver(driver,1)
+                # Send a Control
+                LOGGER.debug(f"{self.lpfx} reportCmd({driver},1.2)")
+                self.reportCmd(driver,1,2)
 
     # This is called by parent when object is detected
     def turn_on(self,obj):
