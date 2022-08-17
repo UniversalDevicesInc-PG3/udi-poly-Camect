@@ -3,7 +3,7 @@ from nodes.BaseNode import BaseNode
 from udi_interface import LOGGER
 from nodes import BaseNode
 from node_funcs import id_to_address,get_valid_node_name
-from const import DETECTED_OBJECT_MAP,HAS_ST_BUG
+from const import DETECTED_OBJECT_MAP
 
 class DetectedObject(BaseNode):
     id = 'objdet' # Placeholder, gets overwritten in __init__
@@ -13,6 +13,7 @@ class DetectedObject(BaseNode):
 
     def __init__(self, controller, primary, address, otype):
         self.id = otype
+        self.controller = controller
         self.map = DETECTED_OBJECT_MAP[otype]
         LOGGER.debug(f"Adding DetectedObject {otype} for {primary.address}:{primary.name} address={address}")
         name    = f'{primary.name} {otype}'
@@ -20,7 +21,7 @@ class DetectedObject(BaseNode):
         self.dname_to_driver = {}
         self.lpfx = '%s:%s' % (self.address,self.name)
         pdrv = dict()
-        if HAS_ST_BUG:
+        if self.controller.has_st_bug:
             odrivers = controller.poly.db_getNodeDrivers(address)
             LOGGER.debug(f"{self.lpfx} odrivers={odrivers}")
             if odrivers is not None:
@@ -36,7 +37,7 @@ class DetectedObject(BaseNode):
 
     def start(self):
         LOGGER.debug(f'{self.lpfx}')
-        if not HAS_ST_BUG:
+        if not self.controller.has_st_bug:
             self.clear(report=False)
             self.reportDrivers()
 
@@ -63,7 +64,7 @@ class DetectedObject(BaseNode):
                 LOGGER.debug(f"{self.lpfx} reportCmd({driver})")
                 self.reportCmd(driver)
         else:
-            if HAS_ST_BUG:
+            if self.controller.has_st_bug:
                 if int(self.get_driver(driver)) == 0:
                     # ST means something detected
                     self.set_driver('ST',1)

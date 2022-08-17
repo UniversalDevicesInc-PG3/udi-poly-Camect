@@ -171,6 +171,11 @@ class CamectController(Node):
         self.set_hosts_configured()
         self.set_hosts_connected()
         self.heartbeat()
+        # Due to a bug in current version of ISY 5.4.4 when we send Status, it triggers a 
+        # Control program so we only send status if it's on.  We also can't send the off 
+        # since that triggers it as well.
+        self.has_st_bug = True if self.poly.pg3init['isyVersion'] == "5.4.4" or self.poly.pg3init['isyVersion'] == "5.3.4" else False
+        LOGGER.warning(f"This ISY {self.poly.pg3init['isyVersion']} has_st_bug={self.has_st_bug}")
         self.start_done = True
         #self.set_debug_level()
         self.discover()

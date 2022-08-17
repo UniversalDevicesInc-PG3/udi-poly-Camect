@@ -1,10 +1,4 @@
 
-# Due to a bug in current version of ISY 5.4.4 when
-# we send Status, it triggers a Control program so
-# we only send status if it's on.  We also can't send
-# the off since that triggers it as well.
-HAS_ST_BUG = True
-
 NODE_DEF_MAP = {
 
 }
