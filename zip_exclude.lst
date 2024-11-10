@@ -10,3 +10,5 @@ pics/*
 *.key
 *.pid
 *.log
+camect/*
+camect-py/*
