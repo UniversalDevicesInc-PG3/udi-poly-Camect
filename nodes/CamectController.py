@@ -44,6 +44,8 @@ class CamectController(Node):
         poly.subscribe(poly.POLL,            self.poll)
         poly.subscribe(poly.DISCOVER,        self.discover)
         poly.subscribe(poly.ADDNODEDONE,     self.node_queue)
+        poly.subscribe(poly.CONFIGDONE,      self.handler_config_done)
+        poly.subscribe(poly.LOGLEVEL,        self.handler_log_level)
 
         poly.ready()
         poly.addNode(self, conn_status="ST")
@@ -191,6 +193,22 @@ class CamectController(Node):
         else:
             LOGGER.debug('')
             self.heartbeat()
+
+    def handler_config_done(self):
+        LOGGER.debug('enter')
+        self.poly.addLogLevel('DEBUG_MODULES',9,'Debug + Modules')
+        self.handler_config_st = True
+        LOGGER.debug('exit')
+
+    def handler_log_level(self,level):
+        LOGGER.info(f'enter: level={level}')
+        if level['level'] < 10:
+            LOGGER.info("Setting basic config to DEBUG...")
+            LOG_HANDLER.set_basic_config(True,logging.DEBUG)
+        else:
+            LOGGER.info("Setting basic config to WARNING...")
+            LOG_HANDLER.set_basic_config(True,logging.WARNING)
+        LOGGER.info(f'exit: level={level}')
 
     def query(self,command=None):
         self.reportDrivers()

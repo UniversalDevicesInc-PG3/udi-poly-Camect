@@ -4,12 +4,12 @@ from udi_interface import Interface,LOGGER
 import sys
 
 """ Grab My Controller Node """
-from nodes import CamectController
+from nodes import CamectController,VERSION
 
 if __name__ == "__main__":
     try:
         polyglot = Interface([])
-        polyglot.start()
+        polyglot.start(VERSION)
         polyglot.updateProfile()
         polyglot.setCustomParamsDoc()
         CamectController(polyglot, 'controller', 'controller', 'Camect Controller')
