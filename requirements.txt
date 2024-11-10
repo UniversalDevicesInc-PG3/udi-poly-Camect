@@ -1,2 +1,3 @@
 udi_interface>=3.0.23
+websockets < 13.0
 camect-py

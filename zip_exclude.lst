@@ -6,3 +6,7 @@ zip_exclude.lst
 *.zip
 udi_interface/*
 pics/*
+*.cert
+*.key
+*.pid
+*.log
