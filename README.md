@@ -128,7 +128,7 @@ There is a confirmed bug in IoP verison 5.4.4 which should hopefully be fixed so
 It is always recommended to use "Control" events when writing programs, so when this workaround is eventually removed you will not be rquired to change anything.
 
 ## Version History
-- 3.0.11: 11/10/2024
+- 3.0.13: 11/10/2024
   - Force websockets < 13.0 to Avoid issues with Camect API
   - Add "Debug + Modules" log level to help debug issue with camect API
 - 3.0.9: 08/15/2022
