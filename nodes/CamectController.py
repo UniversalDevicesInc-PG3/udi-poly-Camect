@@ -10,6 +10,7 @@ from const import HOST_MODE_MAP,NODE_DEF_MAP
 # IF you want a different log format than the current default
 #LOG_HANDLER.set_log_format('%(asctime)s %(threadName)-10s %(name)-18s %(levelname)-8s %(module)s:%(funcName)s: %(message)s')
 
+
 class CamectController(Node):
     def __init__(self, poly, primary, address, name):
         super(CamectController, self).__init__(poly, primary, address, name)
