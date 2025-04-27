@@ -85,7 +85,6 @@ class CamectController(Node):
         if (data['address'] == self.address):
             self.add_node_done()
 
-
     def wait_for_node_done(self):
         while len(self.n_queue) == 0:
             time.sleep(0.1)
@@ -419,6 +418,16 @@ class CamectController(Node):
     def set_module_logs(self,level):
         logging.getLogger('urllib3').setLevel(level)
 
+    def error(self,text):
+        LOGGER.error(text)
+        if self.errors == 0:
+            self.error_text = text
+        else:
+            self.error_text += "\n" + text
+        self.Notices['error'] = self.error_text
+        self.errors += 1
+        self.set_driver('ERR',self.errors)
+
     """
     Create our own get/set driver methods because getDriver from Polyglot can be
     delayed, we sometimes need to know the value before the DB is updated
@@ -474,8 +483,9 @@ class CamectController(Node):
         'SET_MODE': cmd_set_mode
 }
     drivers = [
-        {'driver': 'ST',   'value':  1, 'uom': 25}, 
-        {'driver': 'MODE', 'value':  0, 'uom': 25}, # Host Mode of all Hosts
-        {'driver': 'GV2',  'value':  0, 'uom': 25}, # Camects Configured
-        {'driver': 'GV3',  'value':  0, 'uom': 25}, # Camects Connected
+        {'driver': 'ST',   'value':  1, 'uom': 25, 'name': 'Plugin Connected'}, 
+        {'driver': 'ERR',   'value': 0, 'uom': 56, 'name': 'Errors'},
+        {'driver': 'MODE', 'value':  0, 'uom': 25, 'name': 'Host Mode of all Hosts'},
+        {'driver': 'GV2',  'value':  0, 'uom': 25, 'name': 'Camects Configured'},
+        {'driver': 'GV3',  'value':  0, 'uom': 25, 'name': 'Camects Connected'},
     ]

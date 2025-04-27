@@ -82,13 +82,21 @@ class Camera(BaseNode):
         #            LOGGER.error(f"Internal error, no {otype} in dectected_obj_by_type dict?")
         # And set the current ones
         for obj in object_list:
+            # Strip truck, car, pickup from end of detected vehicles
+            for sub in [' truck', ' car', ' pickup']:
+                if obj.endswith(sub):
+                    LOGGER.debug(f'Removing {sub} from end of {obj}')
+                    obj.removesuffix(sub)
             if obj in self.detected_obj_by_type:
                 LOGGER.debug(f"{self.lpfx} {obj}")
                 self.set_driver('ALARM',1)
                 #self.set_driver('ALARM',DETECTED_OBJECT_MAP['obj'])
                 self.detected_obj_by_type[obj].turn_on(obj)
             else:
-                LOGGER.error(f"Unsupported detected object '{obj}'")
+                self.error(f"Unsupported detected object '{obj}'")
+
+    def error(self,text):
+        LOGGER.error(f"{self.cam['name']} {text}")
 
     def cmd_alert_on(self, command):
         LOGGER.info("")
@@ -112,10 +120,10 @@ class Camera(BaseNode):
 
     hint = [1,2,3,4]
     drivers = [
-        {'driver': 'ST',  'value': 0, 'uom': 2}, # Enabled
-        {'driver': 'ALARM', 'value': 0, 'uom': 2}, # Detected
-        {'driver': 'MODE', 'value': 0, 'uom': 2}, # Alerting
-        {'driver': 'GPV', 'value': 0, 'uom': 2}, # Streaming
+        {'driver': 'ST',    'value': 0, 'uom': 2,  'name': 'Enabled'},
+        {'driver': 'ALARM', 'value': 0, 'uom': 2,  'name': 'Detected'},
+        {'driver': 'MODE',  'value': 0, 'uom': 2,  'name': 'Alerting'},
+        {'driver': 'GPV',   'value': 0, 'uom': 2,  'name': 'Streaming'},
         ]
     id = 'camera'
     commands = {

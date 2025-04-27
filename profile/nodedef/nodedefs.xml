@@ -5,6 +5,7 @@
         <editors />
         <sts>
 			<st id="ST" editor="cst" />
+            <st id="ERR" editor="I_CNT" /> <!-- Errors -->
             <st id="MODE" editor="I_HMODEM" /> <!-- Host Mode, MIXED, DEFAULT, HOME -->
             <st id="GV2" editor="I_CNT" /> <!-- Camects Configured -->
             <st id="GV3" editor="I_CNT" /> <!-- Camects Connected -->
@@ -95,19 +96,19 @@
     <nodeDef id="vehicle" nls="vehicle">
         <editors />
         <sts>
-            <st id="ST"   editor="bool" /> <!-- Any Object -->
-            <st id="GV0"  editor="bool" /> <!-- Amazon -->
-            <st id="GV1"  editor="bool" /> <!-- UPS -->
-            <st id="GV2"  editor="bool" /> <!-- USPS-->
-            <st id="GV3"  editor="bool" /> <!-- Bicycle -->
-            <st id="GV4"  editor="bool" /> <!-- Bus-->
-            <st id="GV5"  editor="bool" /> <!-- Car -->
-            <st id="GV6"  editor="bool" /> <!-- DHL -->
-            <st id="GV7"  editor="bool" /> <!-- FedEx -->
-            <st id="GV8"  editor="bool" /> <!-- Motorcycle -->
-            <st id="GV9"  editor="bool" /> <!-- Pickup -->
-            <st id="GV10" editor="bool" /> <!-- Royal Mail -->
-            <st id="GV11" editor="bool" /> <!-- Truck -->
+            <st id="ST"    editor="bool" /> <!-- Any Object -->
+            <st id="GV0"   editor="bool" /> <!-- Amazon -->
+            <st id="GV1"   editor="bool" /> <!-- DHL -->
+            <st id="GV2"   editor="bool" /> <!-- FedEx -->
+            <st id="GV3"   editor="bool" /> <!-- Royal Mail -->
+            <st id="GV4"   editor="bool" /> <!-- UPS -->
+            <st id="GV5"   editor="bool" /> <!-- USPS -->
+            <st id="GV6"   editor="bool" /> <!-- Bicycle -->
+            <st id="GV7"   editor="bool" /> <!-- Bus-->
+            <st id="GV8"   editor="bool" /> <!-- Car -->
+            <st id="GV9"   editor="bool" /> <!-- Motorcycle -->
+            <st id="GV10"  editor="bool" /> <!-- Pickup -->
+            <st id="GV11"  editor="bool" /> <!-- Truck -->
         </sts>
         <cmds>
             <sends>

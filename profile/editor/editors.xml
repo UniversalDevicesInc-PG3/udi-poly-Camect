@@ -19,6 +19,6 @@
       <range uom="25" subset="-1,0-1" nls="HMODE"/>
     </editor>
     <editor id="I_CNT">
-      <range uom="56" min="0" max="99" nls="HMODE"/>
+      <range uom="56" min="0" max="10000"/>
     </editor>
 </editors>

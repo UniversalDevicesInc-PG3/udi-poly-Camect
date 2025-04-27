@@ -128,6 +128,13 @@ There is a confirmed bug in IoP verison 5.4.4 which should hopefully be fixed so
 It is always recommended to use "Control" events when writing programs, so when this workaround is eventually removed you will not be rquired to change anything.
 
 ## Version History
+- 3.0.14: 03/30/2025  
+  - IMPORTANT: Check all your "Vehicle" references, ISY driver numbers were wrong in profile.
+  - USPS and other deliery vehicles fixed, Camect added 'truck', 'pickup', and 'car' to each of them which broke triggers.  We know strip those from the detected triggers coming from Camect API.
+  - Update camect-py library to 0.2.1
+  - Remove websockets from requirements since it's included in camect now
+  - Added all Driver names so the show up in PG3 UI, but detected object drivers are created on the fly so you have to look at https://github.com/UniversalDevicesInc-PG3/udi-poly-Camect/blob/main/profile/nodedef/nodedefs.xml
+  - Add ERR driver on controller to track issues.  Errors are shown in the PG3x UI. Currently only flags unsupported detected objects.
 - 3.0.13: 11/10/2024
   - Force websockets < 13.0 to Avoid issues with Camect API
   - Add "Debug + Modules" log level to help debug issue with camect API
