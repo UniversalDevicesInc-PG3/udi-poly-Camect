@@ -16,12 +16,12 @@ DETECTED_OBJECT_MAP = {
     },
 
     'vehicle': {
-        'Amazon truck':             { 'num': 0,  'name': 'Amazon' },
-        'DHL truck':                { 'num': 1,  'name': 'DHL' },
-        'FedEx truck':              { 'num': 2,  'name': 'FedEx' },
-        'RoyalMail truck':          { 'num': 3,  'name': 'Royal Mai' },
-        'UPS truck':                { 'num': 4,  'name': 'UPS' },
-        'USPS truck':               { 'num': 5,  'name': 'USPS' },
+        'Amazon':                   { 'num': 0,  'name': 'Amazon' },
+        'DHL':                      { 'num': 1,  'name': 'DHL' },
+        'FedEx':                    { 'num': 2,  'name': 'FedEx' },
+        'RoyalMail':                { 'num': 3,  'name': 'Royal Mail' },
+        'UPS':                      { 'num': 4,  'name': 'UPS' },
+        'USPS':                     { 'num': 5,  'name': 'USPS' },
         'bicycle':                  { 'num': 6,  'name': 'Bicycle' },
         'bus':                      { 'num': 7,  'name': 'Bus' },
         'car':                      { 'num': 8,  'name': 'Car' },

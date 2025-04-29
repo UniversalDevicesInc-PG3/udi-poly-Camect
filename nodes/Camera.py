@@ -85,7 +85,7 @@ class Camera(BaseNode):
             for sub in [' truck', ' car', ' pickup']:
                 if obj.endswith(sub):
                     LOGGER.debug(f'Removing {sub} from end of {obj}')
-                    obj.removesuffix(sub)
+                    obj = obj.removesuffix(sub)
             if obj in self.detected_obj_by_type:
                 LOGGER.debug(f"{self.lpfx} {obj}")
                 self.set_driver('ALARM',1)
