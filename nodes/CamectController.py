@@ -17,6 +17,7 @@ class CamectController(Node):
         self.poly = poly
         self.name = 'Camect Controller'
         self.hb = 0
+        self.errors = 0
         self.n_queue = []
         self.nodes_by_id = {}
         self.hosts = None
@@ -110,7 +111,7 @@ class CamectController(Node):
         self.wait_for_node_done()
         gnode = self.poly.getNode(address)
         if gnode is None:
-            LOGGER.error('Failed to add node address')
+            self.error(f'Failed to add node address {cname} {address}')
         return node
 
     def add_node_done(self):
@@ -137,7 +138,7 @@ class CamectController(Node):
         # Make sure all the params exist.
         for param in params:
             if data is None or not param in data:
-                LOGGER.error(f'Add back missing param {param}')
+                self.error(f'Add back missing param {param}')
                 self.Params[param] = params[param]
                 # Can't do anything else because we will be called again due to param change
                 return
@@ -170,6 +171,7 @@ class CamectController(Node):
     def start(self):
         LOGGER.info('Started Camect NodeServer {}'.format(self.poly.serverdata['version']))
         self.set_driver('ST', 1)
+        self.set_driver('ERR', 0)
         self.set_hosts_configured()
         self.set_hosts_connected()
         self.heartbeat()
@@ -226,7 +228,7 @@ class CamectController(Node):
         if mname in HOST_MODE_MAP:
             self.set_mode(HOST_MODE_MAP[mname])
             return
-        LOGGER.error(f'Unknown Host Mode Name "{mname}"')
+        self.error(f'Unknown Host Mode Name "{mname}"')
 
     def set_mode(self,val=None):
         LOGGER.debug(f'val={val}')
@@ -370,7 +372,7 @@ class CamectController(Node):
                             self.nodes_by_id[camect_info['id']] = Host(self, hub_info['node_address'], host['host'], camect_obj, new)
                             self.add_node(hub_info['node_address'],self.nodes_by_id[camect_info['id']])
                     except:
-                        LOGGER.error('Failed to add camect host {host}',exc_info=True)
+                        self.error('Failed to add camect host {host}',exc_info=True)
         self.in_discover = False
         LOGGER.info("done")
 
@@ -399,7 +401,7 @@ class CamectController(Node):
         try:
             camect_obj = camect.Home(f"{host}:443", self.user, self.password)
         except:
-            LOGGER.error(f'Failed to connect to camect host {host}',exc_info=True)
+            self.error(f'Failed to connect to camect host {host}',exc_info=True)
             return False
         self.hosts_connected += 1
         self.set_hosts_connected()
@@ -419,13 +421,13 @@ class CamectController(Node):
     def set_module_logs(self,level):
         logging.getLogger('urllib3').setLevel(level)
 
-    def error(self,text):
-        LOGGER.error(text)
+    def error(self,text,exc_info=False):
+        LOGGER.error(text,exc_info=exc_info)
         if self.errors == 0:
             self.error_text = text
         else:
-            self.error_text += "\n" + text
-        self.Notices['error'] = self.error_text
+            self.error_text += "<br>" + text
+        self.Notices['controller_error'] = self.error_text
         self.errors += 1
         self.set_driver('ERR',self.errors)
 
@@ -456,7 +458,7 @@ class CamectController(Node):
             #else:
             #    LOGGER.debug(f'not necessary')
         except:
-            LOGGER.error(f'set_driver({mdrv},{val}) failed',exc_info=True)
+            self.error(f'set_driver({mdrv},{val}) failed',exc_info=True)
             return None
         return val
 

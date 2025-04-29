@@ -35,7 +35,7 @@ class Camera(BaseNode):
 
     def update_status(self,cam,report=True):
         if cam is None:
-            LOGGER.error("Camera info not defined, was it deleted from Camect?  Please report this to the developer")
+            self.controller.error("Camera info not defined, was it deleted from Camect?  Please report this to the developer")
             return
         #LOGGER.debug(f'{self.lpfx}: cam={cam}')
         #LOGGER.debug(f"{self.lpfx}: disabled={cam['disabled']} is_alert_disabled={cam['is_alert_disabled']} is_streaming={cam['is_streaming']}")
@@ -55,7 +55,7 @@ class Camera(BaseNode):
             if 'detected_obj' in event:
                 self.detected_obj(event['detected_obj'])
             else:
-                LOGGER.error(f"Unknown alert, no detected_obj in {event}")
+                self.controller.error(f"Unknown alert, no detected_obj in {event}")
         elif event['type'] == 'alert_disabled':
             self.set_driver('MODE',0)
         elif event['type'] == 'alert_enabled':
@@ -66,8 +66,7 @@ class Camera(BaseNode):
             self.set_driver('ST',1)
         else:
             msg = f"Unknown event type {event['type']} in {event}"
-            LOGGER.error(msg)
-            self.controller.poly.Notices['callback'] = msg
+            self.controller.error(msg)
             
     def detected_obj(self,object_list):
         LOGGER.debug(f"{self.lpfx} {object_list}")
@@ -79,7 +78,7 @@ class Camera(BaseNode):
         #        if otype in self.detected_obj_by_type:
         #            self.detected_obj_by_type[otype].clear()
         #        else:
-        #            LOGGER.error(f"Internal error, no {otype} in dectected_obj_by_type dict?")
+        #            self.controller.error(f"Internal error, no {otype} in dectected_obj_by_type dict?")
         # And set the current ones
         for obj in object_list:
             # Strip truck, car, pickup from end of detected vehicles
@@ -96,7 +95,7 @@ class Camera(BaseNode):
                 self.error(f"Unsupported detected object '{obj}'")
 
     def error(self,text):
-        LOGGER.error(f"{self.cam['name']} {text}")
+        self.controller.error(f"{self.cam['name']}: {text}")
 
     def cmd_alert_on(self, command):
         LOGGER.info("")
