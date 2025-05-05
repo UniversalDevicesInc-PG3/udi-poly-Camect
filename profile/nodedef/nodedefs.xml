@@ -73,6 +73,7 @@
         <editors />
         <sts>
             <st id="ST"   editor="bool" /> <!-- Any Object -->
+            <st id="GPV"  editor="I_HUM"  /> <!-- Object Name -->
             <st id="GV0"  editor="bool" /> <!-- Person -->
             <st id="GV1"  editor="bool" /> <!-- Santa Claus -->
         </sts>
@@ -97,6 +98,7 @@
         <editors />
         <sts>
             <st id="ST"    editor="bool" /> <!-- Any Object -->
+            <st id="GPV"   editor="I_VEH"  /> <!-- Object Name -->
             <st id="GV0"   editor="bool" /> <!-- Amazon -->
             <st id="GV1"   editor="bool" /> <!-- DHL -->
             <st id="GV2"   editor="bool" /> <!-- FedEx -->
@@ -151,6 +153,7 @@
         <editors />
         <sts>
             <st id="ST"   editor="bool" /> <!-- Any Object -->
+            <st id="GPV"   editor="I_ANM"  /> <!-- Object Name -->
             <st id="GV0"  editor="bool" /> <!-- Bear -->
             <st id="GV1"  editor="bool" /> <!-- Bird -->
             <st id="GV2"  editor="bool" /> <!-- Cat -->
@@ -205,6 +208,7 @@
         <editors />
         <sts>
             <st id="ST"  editor="bool" /> <!-- Any Object -->
+            <st id="GPV" editor="I_INS"  /> <!-- Object Name -->
             <st id="GV0" editor="bool" /> <!-- Fly -->
             <st id="GV1" editor="bool" /> <!-- Spider -->
         </sts>

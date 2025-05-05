@@ -8,7 +8,8 @@ from const import DETECTED_OBJECT_MAP
 class DetectedObject(BaseNode):
     id = 'objdet' # Placeholder, gets overwritten in __init__
     drivers = [
-        {'driver': 'ST',  'value': 0, 'uom': 2}, # Enabled
+        {'driver': 'ST',  'value': 0, 'uom': 2, 'name': 'Object Detected'},
+        {'driver': 'GPV',  'value': -1, 'uom': 25, 'name': 'Object Name'}, # Object Name
     ]
 
     def __init__(self, controller, primary, address, otype):
@@ -28,27 +29,27 @@ class DetectedObject(BaseNode):
                 for odrv in odrivers:
                     pdrv[odrv['driver']] = odrv['value']
         for obj_name in self.map:
-            dv = 'GV' + str(self.map[obj_name]['num'])
-            val = pdrv[dv] if dv in pdrv else 0
-            self.drivers.append({'driver':  dv, 'value': val, 'uom': 2})
-            # Hash of my detected objects to the driver
-            self.dname_to_driver[obj_name] = dv
+            dvn = str(self.map[obj_name]['num'])
+            val = pdrv[dvn] if dvn in pdrv else 0
+            self.drivers.append({'driver':  "GV"+dvn, 'value': val, 'uom': 2, 'name': self.map[obj_name]['name']})
+            # Hash of my detected objects to the driver number
+            self.dname_to_driver[obj_name] = dvn
         controller.poly.subscribe(controller.poly.START, self.start, address)
 
     def start(self):
         LOGGER.debug(f'{self.lpfx}')
-        if not self.controller.has_st_bug:
-            self.clear(report=False)
-            self.reportDrivers()
+        self.clear(force=True,report=False)
+        self.reportDrivers()
 
     def clear(self,report=True,force=False):
         LOGGER.debug(f"{self.lpfx} report={report} force={force} ST={self.get_driver('ST')}")
         if force or self.get_driver('ST') is None or int(self.get_driver('ST')) == 1:
             LOGGER.debug(f'{self.lpfx}')
             self.set_driver('ST', 0, report=report)
+            self.set_driver('GPV',-1)
             #self.reportCmd("DOF",2)
             for obj in self.dname_to_driver:
-                self.set_driver(self.dname_to_driver[obj], 0, report=report)
+                self.set_driver("GV"+self.dname_to_driver[obj], 0, report=report)
 
     # Used by turn_on and all cmd_on methods
     def turn_on_d(self,driver):
@@ -67,14 +68,15 @@ class DetectedObject(BaseNode):
             # Clear all drivers if they are on
             if int(self.get_driver('ST')) == 1:
                 self.clear()
+            self.set_driver('GPV',int(driver))
             # ST means something detected
             self.set_driver('ST',1)
-            self.set_driver(driver,1)
+            self.set_driver('GV'+driver,1)
             # Send a Control
             LOGGER.debug(f"{self.lpfx} reportCmd(ST,1.2)")
             self.reportCmd('ST',1,2)
-            LOGGER.debug(f"{self.lpfx} reportCmd({driver},1.2)")
-            self.reportCmd(driver,1,2)
+            LOGGER.debug(f"{self.lpfx} reportCmd(GV{driver},1.2)")
+            self.reportCmd("GV"+driver,1,2)
 
     # This is called by parent when object is detected
     def turn_on(self,obj):
@@ -84,7 +86,8 @@ class DetectedObject(BaseNode):
     # This is called by parent when object is no longer detected
     def turn_off(self,obj):
         LOGGER.debug(f"{self.lpfx}")
-        self.set_driver(self.dname_to_driver[obj],0)
+        self.set_driver("GPV",-1)
+        self.set_driver("GV"+self.dname_to_driver[obj],0)
         #self.reportCmd("DOF",2)
 
     def cmd_on(self, command=None):
@@ -93,73 +96,72 @@ class DetectedObject(BaseNode):
 
     def cmd_on_0(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV0')
+        self.turn_on_d('0')
 
     def cmd_on_1(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV1')
+        self.turn_on_d('1')
 
     def cmd_on_2(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV2')
+        self.turn_on_d('2')
 
     def cmd_on_3(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV3')
+        self.turn_on_d('3')
 
     def cmd_on_4(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV4')
+        self.turn_on_d('4')
 
     def cmd_on_5(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV5')
+        self.turn_on_d('5')
 
     def cmd_on_6(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV6')
+        self.turn_on_d('6')
 
     def cmd_on_7(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV7')
+        self.turn_on_d('7')
 
     def cmd_on_8(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV8')
+        self.turn_on_d('8')
 
     def cmd_on_9(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV9')
+        self.turn_on_d('9')
 
     def cmd_on_10(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV10')
+        self.turn_on_d('10')
 
     def cmd_on_11(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV11')
+        self.turn_on_d('11')
 
     def cmd_on_12(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV12')
+        self.turn_on_d('12')
 
     def cmd_on_13(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV13')
+        self.turn_on_d('13')
 
     def cmd_on_14(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV14')
+        self.turn_on_d('14')
 
     def cmd_on_15(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command}")
-        self.turn_on_d('GV15')
+        self.turn_on_d('15')
 
     def cmd_off(self, command=None):
         LOGGER.debug(f"{self.lpfx} command={command} ST={self.get_driver('ST')}")
-        self.set_driver('ST', 0)
-        for key in self.dname_to_driver:
-            self.set_driver(self.dname_to_driver[key],0)
+        self.clear(force=True)
+        self.reportDrivers();
 
     def query(self,command=None):
         LOGGER.debug(f'{self.lpfx}')

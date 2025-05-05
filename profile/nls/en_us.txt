@@ -96,15 +96,22 @@ OBJ-29 = person and dog
 #
 ND-human-NAME = Human Detection
 ST-human-ST-NAME  = Detected
+ST-human-GPV-NAME = Object Name
 ST-human-GV0-NAME = Santa Claus
 ST-human-GV1-NAME = Person
 CMD-human-GV0-NAME = Santa Claus
 CMD-human-GV1-NAME = Person
+
+HUM--1: None
+HUM-0: Santa Claus
+HUM-1: Person
+
 #
 # Object: Vehicle
 #
 ND-vehicle-NAME = Vehicle Detection
 ST-vehicle-ST-NAME  = Detected
+ST-vehicle-GPV-NAME = Object Name
 ST-vehicle-GV0-NAME = Amazon
 ST-vehicle-GV1-NAME = DHL
 ST-vehicle-GV2-NAME = FedEx
@@ -130,11 +137,27 @@ CMD-vehicle-GV8-NAME = Car
 CMD-vehicle-GV9-NAME = Motorcycle
 CMD-vehicle-GV10-NAME = Pickup
 CMD-vehicle-GV11-NAME = Truck
+
+VEH--1: None
+VEH-0: Amazon
+VEH-1: DHL
+VEH-2: FedEx
+VEH-3: Royal Mail
+VEH-4: UPS
+VEH-5: USPS
+VEH-6: Bicycle
+VEH-7: Bus
+VEH-8: Car
+VEH-9: Motorcycle
+VEH-10: Pickup
+VEH-11: Truck
+
 #
 # Object: Animal
 #
 ND-animal-NAME = Animal Detection
 ST-animal-ST-NAME  = Detected
+ST-animal-GPV-NAME = Object Name
 ST-animal-GV0-NAME = Bear
 ST-animal-GV1-NAME = Bird
 ST-animal-GV2-NAME = Cat
@@ -159,15 +182,35 @@ CMD-animal-GV8-NAME = Skunk
 CMD-animal-GV9-NAME = Squirrel
 CMD-animal-GV10-NAME = Unknown Animal
 CMD-animal-GV11-NAME = Unknown Small Animal
+
+ANM--1: None
+ANM-0: Bear
+ANM-1: Bird
+ANM-2: Cat
+ANM-3: Deer
+ANM-4: Dog
+ANM-5: Mouse
+ANM-6: Rabbit
+ANM-7: Raccoon
+ANM-8: Skunk
+ANM-9: Squirrel
+ANM-10: Unknown Animal
+ANM-11: Unknown Small Animal
+
 #
 # Object: Insect
 #
 ND-insect-NAME = Insect Detection
 ST-insect-ST-NAME  = Detected
+ST-insect-GPV-NAME = Object Name
 ST-insect-GV0-NAME = Fly
 ST-insect-GV1-NAME = Spider
 CMD-insect-GV0-NAME = Fly
 CMD-insect-GV1-NAME = Spider
+
+INS--1: None
+INS-0: Fly
+INS-1: Spider
 
 #
 # Object Detected, not used anymore

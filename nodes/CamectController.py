@@ -172,6 +172,7 @@ class CamectController(Node):
         LOGGER.info('Started Camect NodeServer {}'.format(self.poly.serverdata['version']))
         self.set_driver('ST', 1)
         self.set_driver('ERR', 0)
+        self.Notices.clear()
         self.set_hosts_configured()
         self.set_hosts_connected()
         self.heartbeat()
@@ -180,6 +181,7 @@ class CamectController(Node):
         # since that triggers it as well.
         self.has_st_bug = True if self.poly.pg3init['isyVersion'] == "5.4.4" or self.poly.pg3init['isyVersion'] == "5.3.4" else False
         LOGGER.warning(f"This ISY {self.poly.pg3init['isyVersion']} has_st_bug={self.has_st_bug}")
+        self.set_driver('ERR',0)
         self.start_done = True
         #self.set_debug_level()
         self.discover()
