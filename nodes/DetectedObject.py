@@ -63,7 +63,7 @@ class DetectedObject(BaseNode):
             else:
                 # Already on, send a Control
                 LOGGER.debug(f"{self.lpfx} reportCmd({driver})")
-                self.reportCmd(driver)
+                self.reportCmd(driver,1,25)
         else:
             # Clear all drivers if they are on
             if int(self.get_driver('ST')) == 1:
@@ -73,10 +73,10 @@ class DetectedObject(BaseNode):
             self.set_driver('ST',1)
             self.set_driver('GV'+driver,1)
             # Send a Control
-            LOGGER.debug(f"{self.lpfx} reportCmd(ST,1.2)")
+            LOGGER.debug(f"{self.lpfx} reportCmd(ST,1,2)")
             self.reportCmd('ST',1,2)
-            LOGGER.debug(f"{self.lpfx} reportCmd(GV{driver},1.2)")
-            self.reportCmd("GV"+driver,1,2)
+            LOGGER.debug(f"{self.lpfx} reportCmd(GV{driver},1,25)")
+            self.reportCmd("GV"+driver,1,25)
 
     # This is called by parent when object is detected
     def turn_on(self,obj):
