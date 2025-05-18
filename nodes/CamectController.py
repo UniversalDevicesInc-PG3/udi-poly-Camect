@@ -170,6 +170,7 @@ class CamectController(Node):
 
     def start(self):
         LOGGER.info('Started Camect NodeServer {}'.format(self.poly.serverdata['version']))
+        self.update_profile()
         self.set_driver('ST', 1)
         self.set_driver('ERR', 0)
         self.Notices.clear()
@@ -467,6 +468,10 @@ class CamectController(Node):
     def get_driver(self,mdrv):
         return self.__my_drivers[mdrv] if mdrv in self.__my_drivers else None
 
+    def update_profile(self):
+        LOGGER.info('start')
+        return self.poly.updateProfile()
+
     def cmd_discover(self,command):
         LOGGER.info('')
         self.discover()
@@ -480,13 +485,17 @@ class CamectController(Node):
         for id,node in self.nodes_by_id.items():
             node.cmd_set_mode(command)
 
+    def cmd_update_profile(self,command):
+        self.update_profile()
+
     id = 'controller'
     commands = {
         'QUERY': query,
         'DISCOVER': cmd_discover,
         'SET_DM': cmd_set_debug_mode,
-        'SET_MODE': cmd_set_mode
-}
+        'SET_MODE': cmd_set_mode,
+        'UPDATE_PROFILE': cmd_update_profile,
+    }
     drivers = [
         {'driver': 'ST',   'value':  1, 'uom': 25, 'name': 'Plugin Connected'}, 
         {'driver': 'ERR',   'value': 0, 'uom': 56, 'name': 'Errors'},
