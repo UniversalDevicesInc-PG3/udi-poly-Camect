@@ -170,6 +170,7 @@ ST-animal-GV8-NAME = Skunk
 ST-animal-GV9-NAME = Squirrel
 ST-animal-GV10-NAME = Unknown Animal
 ST-animal-GV11-NAME = Unknown Small Animal
+ST-animal-GV12-NAME = Fox
 CMD-animal-GV0-NAME = Bear
 CMD-animal-GV1-NAME = Bird
 CMD-animal-GV2-NAME = Cat
@@ -182,6 +183,7 @@ CMD-animal-GV8-NAME = Skunk
 CMD-animal-GV9-NAME = Squirrel
 CMD-animal-GV10-NAME = Unknown Animal
 CMD-animal-GV11-NAME = Unknown Small Animal
+CMD-animal-GV12-NAME = Fox
 
 ANM--1: None
 ANM-0: Bear

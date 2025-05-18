@@ -20,8 +20,9 @@
                 <cmd id="SET_MODE">
                     <p id="" editor="I_HMODE" init="MODE" />
                 </cmd>
-              <cmd id="QUERY" />
-              <cmd id="DISCOVER" />
+                <cmd id="QUERY" />
+                <cmd id="DISCOVER" />
+                <cmd id="UPDATE_PROFILE" />
             </accepts>
         </cmds>
     </nodeDef>
@@ -166,6 +167,7 @@
             <st id="GV9"  editor="bool" /> <!-- Squirrel -->
             <st id="GV10" editor="bool" /> <!-- Unknown Animal -->
             <st id="GV11" editor="bool" /> <!-- Unknown Small Animal -->
+            <st id="GV12" editor="bool" /> <!-- Fox -->
         </sts>
         <cmds>
             <sends>
@@ -183,6 +185,7 @@
                 <cmd id="GV9" />
                 <cmd id="GV10" />
                 <cmd id="GV11" />
+                <cmd id="GV12" />
             </sends>
             <accepts>
                 <cmd id="DON" />
@@ -199,6 +202,7 @@
                 <cmd id="GV9" />
                 <cmd id="GV10" />
                 <cmd id="GV11" />
+                <cmd id="GV12" />
             </accepts>
         </cmds>
     </nodeDef>
@@ -208,7 +212,7 @@
         <editors />
         <sts>
             <st id="ST"  editor="bool" /> <!-- Any Object -->
-            <st id="GPV" editor="I_INS"  /> <!-- Object Name -->
+            <st id="GPV" editor="I_INS" /> <!-- Object Name -->
             <st id="GV0" editor="bool" /> <!-- Fly -->
             <st id="GV1" editor="bool" /> <!-- Spider -->
         </sts>

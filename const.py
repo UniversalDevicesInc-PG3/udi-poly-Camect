@@ -43,6 +43,7 @@ DETECTED_OBJECT_MAP = {
         'squirrel':                 { 'num': 9,  'name': 'Squirrel' },
         'unknown animal':           { 'num': 10, 'name': 'Unknown Animal' },
         'unknown small animal':     { 'num': 11, 'name': 'Unknown Small Animal' },
+        'fox':                      { 'num': 12, 'name': 'Fox' },
     },
     'insect': {
         'fly':                      { 'num':  0,  'name': 'Fly' },

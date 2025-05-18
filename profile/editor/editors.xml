@@ -22,15 +22,15 @@
       <range uom="56" min="0" max="10000"/>
     </editor>
     <editor id="I_VEH">
-      <range uom="25" subset="-1-11" nls="VEH"/>
+      <range uom="25" min="-1" max="11" nls="VEH"/>
     </editor>
     <editor id="I_HUM">
-      <range uom="25" subset="-1-1" nls="HUM"/>
+      <range uom="25" min="-1" max="1" nls="HUM"/>
     </editor>
     <editor id="I_ANM">
-      <range uom="25" subset="-1-11" nls="ANM"/>
+      <range uom="25" min="-1" max="12" nls="ANM"/>
     </editor>
     <editor id="I_INS">
-      <range uom="25" subset="-1-1" nls="INS"/>
+      <range uom="25"  min="-1" max="1" nls="INS"/>
     </editor>
 </editors>
