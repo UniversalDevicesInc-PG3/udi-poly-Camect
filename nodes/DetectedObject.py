@@ -4,6 +4,8 @@ from udi_interface import LOGGER
 from nodes import BaseNode
 from node_funcs import id_to_address,get_valid_node_name
 from const import DETECTED_OBJECT_MAP
+from threading import Thread,Lock
+import time
 
 class DetectedObject(BaseNode):
     id = 'objdet' # Placeholder, gets overwritten in __init__
@@ -40,16 +42,37 @@ class DetectedObject(BaseNode):
         LOGGER.debug(f'{self.lpfx}')
         self.clear(force=True,report=False)
         self.reportDrivers()
+        # Start a thread to handle clears
+        self.clear_lock = Lock() # Lock for syncronizing acress threads
+        self.thread = Thread(target=self.clear_waiter)
+        LOGGER.debug(f'Starting Thread')
+        st = self.thread.start()
+        LOGGER.debug('Thread start st={}'.format(st))
 
     def clear(self,report=True,force=False):
         LOGGER.debug(f"{self.lpfx} report={report} force={force} ST={self.get_driver('ST')}")
         if force or self.get_driver('ST') is None or int(self.get_driver('ST')) == 1:
             LOGGER.debug(f'{self.lpfx}')
             self.set_driver('ST', 0, report=report)
-            self.set_driver('GPV',-1)
+            self.set_driver('GPV',-1, report=report)
             #self.reportCmd("DOF",2)
             for obj in self.dname_to_driver:
                 self.set_driver("GV"+self.dname_to_driver[obj], 0, report=report)
+
+    def clear_waiter(self):
+        while (True):
+            self.dont_clear = False
+            LOGGER.debug(f"{self.lpfx} lock acquiring...")
+            # Wait until we are told go
+            self.clear_lock.acquire()
+            LOGGER.debug(f"{self.lpfx} lock sleeping...")
+            time.sleep(3)
+            # To avoid stomping on another detection that happened while sleeping
+            if self.dont_clear:
+                LOGGER.debug(f"{self.lpfx} lock skip clearing...")
+            else:
+                LOGGER.debug(f"{self.lpfx} lock clearing...")
+                self.clear()
 
     # Used by turn_on and all cmd_on methods
     def turn_on_d(self,driver):
@@ -65,10 +88,9 @@ class DetectedObject(BaseNode):
                 LOGGER.debug(f"{self.lpfx} reportCmd({driver})")
                 self.reportCmd(driver,1,25)
         else:
-            # Clear all drivers if they are on
-            if int(self.get_driver('ST')) == 1:
-                self.clear()
-            self.set_driver('GPV',int(driver))
+            # Tells clear_waiting method to don't clear if it was sleeping
+            self.dont_clear = True
+            self.set_driver('GPV',int(driver),uom=25)
             # ST means something detected
             self.set_driver('ST',1)
             self.set_driver('GV'+driver,1)
@@ -77,6 +99,8 @@ class DetectedObject(BaseNode):
             self.reportCmd('ST',1,2)
             LOGGER.debug(f"{self.lpfx} reportCmd(GV{driver},1,25)")
             self.reportCmd("GV"+driver,1,25)
+            LOGGER.debug(f"{self.lpfx} lock releasing")
+            self.clear_lock.release()
 
     # This is called by parent when object is detected
     def turn_on(self,obj):
