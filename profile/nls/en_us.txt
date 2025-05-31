@@ -99,12 +99,33 @@ ST-human-ST-NAME  = Detected
 ST-human-GPV-NAME = Object Name
 ST-human-GV0-NAME = Santa Claus
 ST-human-GV1-NAME = Person
+ST-human-GV2-NAME = Amazon
+ST-human-GV3-NAME = DHL
+ST-human-GV4-NAME = DPD
+ST-human-GV5-NAME = FedEx
+ST-human-GV6-NAME = Royal Mail
+ST-human-GV7-NAME = UPS
+ST-human-GV8-NAME = USPS
 CMD-human-GV0-NAME = Santa Claus
 CMD-human-GV1-NAME = Person
+CMD-human-GV2-NAME = Amazon
+CMD-human-GV3-NAME = DHL
+CMD-human-GV4-NAME = DPD
+CMD-human-GV5-NAME = FedEx
+CMD-human-GV6-NAME = Royal Mail
+CMD-human-GV7-NAME = UPS
+CMD-human-GV8-NAME = USPS
 
-HUM--1: None
-HUM-0: Santa Claus
-HUM-1: Person
+HUM--1 = None
+HUM-0 = Santa Claus
+HUM-1 = Person
+HUM-2 = Amazon
+HUM-3 = DHL
+HUM-4 = DPD
+HUM-5 = FedEx
+HUM-6 = RoyalMail
+HUM-7 = UPS
+HUM-8 = USPS
 
 #
 # Object: Vehicle
@@ -138,19 +159,19 @@ CMD-vehicle-GV9-NAME = Motorcycle
 CMD-vehicle-GV10-NAME = Pickup
 CMD-vehicle-GV11-NAME = Truck
 
-VEH--1: None
-VEH-0: Amazon
-VEH-1: DHL
-VEH-2: FedEx
-VEH-3: Royal Mail
-VEH-4: UPS
-VEH-5: USPS
-VEH-6: Bicycle
-VEH-7: Bus
-VEH-8: Car
-VEH-9: Motorcycle
-VEH-10: Pickup
-VEH-11: Truck
+VEH--1 = None
+VEH-0 = Amazon
+VEH-1 = DHL
+VEH-2 = FedEx
+VEH-3 = Royal Mail
+VEH-4 = UPS
+VEH-5 = USPS
+VEH-6 = Bicycle
+VEH-7 = Bus
+VEH-8 = Car
+VEH-9 = Motorcycle
+VEH-10 = Pickup
+VEH-11 = Truck
 
 #
 # Object: Animal
@@ -185,19 +206,19 @@ CMD-animal-GV10-NAME = Unknown Animal
 CMD-animal-GV11-NAME = Unknown Small Animal
 CMD-animal-GV12-NAME = Fox
 
-ANM--1: None
-ANM-0: Bear
-ANM-1: Bird
-ANM-2: Cat
-ANM-3: Deer
-ANM-4: Dog
-ANM-5: Mouse
-ANM-6: Rabbit
-ANM-7: Raccoon
-ANM-8: Skunk
-ANM-9: Squirrel
-ANM-10: Unknown Animal
-ANM-11: Unknown Small Animal
+ANM--1 = None
+ANM-0 = Bear
+ANM-1 = Bird
+ANM-2 = Cat
+ANM-3 = Deer
+ANM-4 = Dog
+ANM-5 = Mouse
+ANM-6 = Rabbit
+ANM-7 = Raccoon
+ANM-8 = Skunk
+ANM-9 = Squirrel
+ANM-10 = Unknown Animal
+ANM-11 = Unknown Small Animal
 
 #
 # Object: Insect
@@ -210,9 +231,9 @@ ST-insect-GV1-NAME = Spider
 CMD-insect-GV0-NAME = Fly
 CMD-insect-GV1-NAME = Spider
 
-INS--1: None
-INS-0: Fly
-INS-1: Spider
+INS--1 = None
+INS-0 = Fly
+INS-1 = Spider
 
 #
 # Object Detected, not used anymore

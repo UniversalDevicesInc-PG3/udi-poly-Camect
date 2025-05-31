@@ -128,9 +128,10 @@ There is a confirmed bug in IoP verison 5.4.4 which should hopefully be fixed so
 It is always recommended to use "Control" events when writing programs, so when this workaround is eventually removed you will not be rquired to change anything.
 
 ## Version History
-- 3.0.14: 03/30/2025  
+- 3.1.0: 05/31/2025  
   - IMPORTANT: Check all your "Vehicle" references, ISY driver numbers were wrong in profile.
-  - USPS and other deliery vehicles fixed, Camect added 'truck', 'pickup', and 'car' to each of them which broke triggers.  We now strip those from the detected triggers coming from Camect API.
+  - USPS and other deliery vehicles fixed, Camect added 'truck', 'pickup', and 'car' to each of them which broke triggers.  Now any of the delivery vehicle just triggers the real name, for example "Amazon truck" just triggers "Amazon"
+  - Added Human's for all deliver vehicles, Amazon, FedEx, ...
   - Update camect-py library to 0.2.1
   - Remove websockets from requirements since it's included in camect now
   - Added all Driver names so the show up in PG3 UI.

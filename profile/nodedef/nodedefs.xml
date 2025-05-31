@@ -73,10 +73,17 @@
     <nodeDef id="human" nls="human">
         <editors />
         <sts>
-            <st id="ST"   editor="bool" /> <!-- Any Object -->
+            <st id="ST"   editor="7bool" /> <!-- Any Object -->
             <st id="GPV"  editor="I_HUM"  /> <!-- Object Name -->
             <st id="GV0"  editor="bool" /> <!-- Person -->
             <st id="GV1"  editor="bool" /> <!-- Santa Claus -->
+            <st id="GV2"   editor="bool" /> <!-- Amazon -->
+            <st id="GV3"   editor="bool" /> <!-- DHL -->
+            <st id="GV4"   editor="bool" /> <!-- DPD -->
+            <st id="GV5"   editor="bool" /> <!-- FedEx -->
+            <st id="GV6"   editor="bool" /> <!-- Royal Mail -->
+            <st id="GV7"   editor="bool" /> <!-- UPS -->
+            <st id="GV8"   editor="bool" /> <!-- USPS -->
         </sts>
         <cmds>
             <sends>
@@ -84,12 +91,26 @@
                 <cmd id="DOF" /> 
                 <cmd id="GV0" />
                 <cmd id="GV1" />
+                <cmd id="GV2" />
+                <cmd id="GV3" />
+                <cmd id="GV4" />
+                <cmd id="GV5" />
+                <cmd id="GV6" />
+                <cmd id="GV7" />
+                <cmd id="GV8" />
             </sends>
             <accepts>
                 <cmd id="DON" />
                 <cmd id="DOF" />
                 <cmd id="GV0" />
                 <cmd id="GV1" />
+                <cmd id="GV2" />
+                <cmd id="GV3" />
+                <cmd id="GV4" />
+                <cmd id="GV5" />
+                <cmd id="GV6" />
+                <cmd id="GV7" />
+                <cmd id="GV8" />
             </accepts>
         </cmds>
     </nodeDef>
