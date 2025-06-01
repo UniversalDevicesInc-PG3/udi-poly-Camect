@@ -43,7 +43,7 @@ class DetectedObject(BaseNode):
         self.clear(force=True,report=False)
         self.reportDrivers()
         # Start a thread to handle clears
-        self.clear_lock = Lock() # Lock for syncronizing acress threads
+        self.clear_lock = Lock() # Lock for syncronizing across threads
         self.thread = Thread(target=self.clear_waiter)
         LOGGER.debug(f'Starting Thread')
         st = self.thread.start()
@@ -73,6 +73,7 @@ class DetectedObject(BaseNode):
             else:
                 LOGGER.debug(f"{self.lpfx} lock clearing...")
                 self.clear()
+            self.dont_clear = False
 
     # Used by turn_on and all cmd_on methods
     def turn_on_d(self,driver):
