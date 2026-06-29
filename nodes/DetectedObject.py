@@ -20,6 +20,7 @@ class DetectedObject(BaseNode):
         super(DetectedObject, self).__init__(controller.poly, primary.address, address, name)
         self.dname_to_driver = {}
         self.lpfx = '%s:%s' % (self.address,self.name)
+        self.ready = False
         pdrv = dict()
         if self.controller.has_st_bug:
             odrivers = controller.poly.db_getNodeDrivers(address)
@@ -35,7 +36,14 @@ class DetectedObject(BaseNode):
             self.dname_to_driver[obj_name] = dv
         controller.poly.subscribe(controller.poly.START, self.start, address)
 
+    def activate(self):
+        if not hasattr(self, 'ready') or not self.ready:
+            self.start()
+
     def start(self):
+        if hasattr(self, 'ready') and self.ready:
+            return
+        self.ready = True
         LOGGER.debug(f'{self.lpfx}')
         if not self.controller.has_st_bug:
             self.clear(report=False)
@@ -64,25 +72,17 @@ class DetectedObject(BaseNode):
                 LOGGER.debug(f"{self.lpfx} reportCmd({driver})")
                 self.reportCmd(driver)
         else:
-            if self.controller.has_st_bug:
-                if int(self.get_driver(driver)) == 0:
-                    # ST means something detected
-                    self.set_driver('ST',1)
-                    self.set_driver(driver,1)
-                else:
-                    # Send a Control
-                    LOGGER.debug(f"{self.lpfx} reportCmd({driver},1.2)")
-                    self.reportCmd(driver,1,2)
-            else: 
-                # Clear all drivers
-                if int(self.get_driver('ST')) == 1:
-                    self.clear()
-                # ST means something detected
-                self.set_driver('ST',1)
-                self.set_driver(driver,1)
-                # Send a Control
-                LOGGER.debug(f"{self.lpfx} reportCmd({driver},1.2)")
-                self.reportCmd(driver,1,2)
+            # Clear all drivers if they are on
+            if int(self.get_driver('ST')) == 1:
+                self.clear()
+            # ST means something detected
+            self.set_driver('ST',1)
+            self.set_driver(driver,1)
+            # Send a Control
+            LOGGER.debug(f"{self.lpfx} reportCmd(ST,1.2)")
+            self.reportCmd('ST',1,2)
+            LOGGER.debug(f"{self.lpfx} reportCmd({driver},1.2)")
+            self.reportCmd(driver,1,2)
 
     # This is called by parent when object is detected
     def turn_on(self,obj):

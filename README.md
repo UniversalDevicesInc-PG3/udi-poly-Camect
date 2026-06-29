@@ -128,6 +128,13 @@ There is a confirmed bug in IoP verison 5.4.4 which should hopefully be fixed so
 It is always recommended to use "Control" events when writing programs, so when this workaround is eventually removed you will not be rquired to change anything.
 
 ## Version History
+- 3.0.14: 06/28/2026
+  - Fix restart rehydration of Host/Camera Python objects
+  - Add configurable Camect port per host (#24)
+  - Add object name aliases for Amazon truck, USPS truck, etc. (#11)
+  - Remove stale cameras and orphaned hubs when config changes (#19, #22)
+  - Show Polyglot notices on connection failures (#21)
+  - Refresh GV2/GV3 on controller query (#12)
 - 3.0.13: 11/10/2024
   - Force websockets < 13.0 to Avoid issues with Camect API
   - Add "Debug + Modules" log level to help debug issue with camect API

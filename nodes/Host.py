@@ -8,7 +8,7 @@ from nodes import BaseNode
 from nodes import Camera
 from const import HOST_MODE_MAP
 # My functions
-from node_funcs import id_to_address,get_valid_node_name
+from node_funcs import get_valid_node_name
 
 class Host(BaseNode):
     id = 'host'
@@ -17,10 +17,11 @@ class Host(BaseNode):
         {'driver': 'MODE', 'value': 1, 'uom': 25}, 
     ]
 
-    def __init__(self, controller, address, host, camect_obj, new=True):
+    def __init__(self, controller, address, host, port, camect_obj, new=True):
         self.ready      = False
         self.controller = controller
         self.host       = host
+        self.port       = port
         self.camect     = camect_obj # The camect api handle
         self.new        = new
         self.cams_by_id = {} # The hash of camera nodes by id
@@ -29,16 +30,25 @@ class Host(BaseNode):
         super(Host, self).__init__(controller.poly, address, address, name)
         controller.poly.subscribe(controller.poly.START, self.start, address)
 
+    def activate(self):
+        """Initialize a rehydrated host when START has already fired."""
+        if not self.ready:
+            self.start()
+
     def start(self):
+        if self.ready:
+            return
         LOGGER.info(f'Started Camect Host {self.address}:{self.name}')
         self.set_driver('ST',1)
-        self.set_mode_by_name(self.camect.get_mode())
+        if self.camect is not False:
+            self.set_mode_by_name(self.camect.get_mode())
         # We only rediscover a newly added device
         if self.new:
             self.discover()
         else:
             self.add_saved()
-        self.camect.add_event_listener(self.callback)
+        if self.camect is not False:
+            self.camect.add_event_listener(self.callback)
         self.ready = True
 
     def list_cameras(self):
@@ -60,7 +70,7 @@ class Host(BaseNode):
         # Reconnect?
         if self.camect is False:
             LOGGER.warning(f'{self.lpfx}: reconnecting since camect={self.camect}')
-            self.camect = self.controller.reconnect_host(self.host)        
+            self.camect = self.controller.reconnect_host(self.host, self.port)
         if self.camect is False:
             self.set_driver('ST',0,report=report)
             return False
@@ -69,7 +79,6 @@ class Host(BaseNode):
             LOGGER.debug(f'{self.lpfx} Updating cams... {cams}')
             for cam in self.list_cameras():
                 if cam['id'] in self.cams_by_id:
-                    #LOGGER.debug(f"{self.lpfx}: Check camera: {cam}")
                     self.cams_by_id[cam['id']].update_status(cam)
         return True
 
@@ -118,32 +127,54 @@ class Host(BaseNode):
             LOGGER.error(f'{self.lpfx}: in callback: ',exc_info=True)
 
     def add_saved(self):
-        LOGGER.info('{self.lpfx}: Adding saved cameras...')
+        LOGGER.info(f'{self.lpfx}: Adding saved cameras...')
         for cam in self.controller.get_saved_cameras(self):
             LOGGER.debug(f"{self.lpfx}: Adding cam {cam['node_address']} {cam['name']}")
-            # Get the current info about the cam
             ccam = self.list_camera(cam['id'])
             if ccam is None:
                 LOGGER.error(f"{self.lpfx}: Saved camera is no longer listed in this Hub: {cam}")
-            self.cams_by_id[cam['id']] = self.controller.add_node(cam['node_address'],Camera(self.controller, self, cam['node_address'], ccam))
+                self.controller.remove_stale_camera(cam)
+                continue
+            self._add_camera_node(cam, ccam)
 
     def discover(self):
-        # TODO: Keep cams_by_id in DB to remember across restarts and discovers...
         LOGGER.info('started')
         for cam in self.list_cameras():
             LOGGER.debug(f"{self.lpfx}: Check camera: {cam}")
-            # Only add enabled cameras?
             if not cam['disabled']:
                 self.add_camera(cam)
         LOGGER.info('completed')
 
     def get_and_add_camera(self,camid):
-        self.add_camera(self.list_camera(camid))
+        cam = self.list_camera(camid)
+        if cam is not None:
+            self.add_camera(cam)
+
+    def _add_camera_node(self, cam_saved, ccam):
+        address = cam_saved['node_address']
+        if self.controller.poly.getNode(address):
+            camera = Camera(self.controller, self, address, ccam)
+            self.cams_by_id[cam_saved['id']] = camera
+            camera.activate()
+        else:
+            self.cams_by_id[cam_saved['id']] = self.controller.add_node(
+                address, Camera(self.controller, self, address, ccam))
 
     def add_camera(self,cam):
+        if cam is None:
+            return
         cam_address = self.controller.get_cam_address(cam,self)
         LOGGER.debug(f"Adding cam {cam_address} {cam['name']}")
-        self.cams_by_id[cam['id']] = self.controller.add_node(cam_address,Camera(self.controller, self, cam_address, cam))
+        if cam['id'] in self.cams_by_id:
+            self.cams_by_id[cam['id']].update_status(cam)
+            return
+        if self.controller.poly.getNode(cam_address):
+            camera = Camera(self.controller, self, cam_address, cam)
+            self.cams_by_id[cam['id']] = camera
+            camera.activate()
+        else:
+            self.cams_by_id[cam['id']] = self.controller.add_node(
+                cam_address, Camera(self.controller, self, cam_address, cam))
 
     def enable_alert(self, cam_id):
         LOGGER.info(f"{self.lpfx}: {cam_id}")
@@ -154,14 +185,17 @@ class Host(BaseNode):
         return self.camect.disable_alert([cam_id],"nodeserver")
 
     def delete(self):
-        LOGGER.info('Oh God I\'m being deleted. Nooooooooooooooooooooooooooooooooooooooooo.')
+        LOGGER.info(f'{self.lpfx}: Host deleted, removing hub data')
+        for hub_id, hub_info in list(self.controller.saved_data.items()):
+            if hub_info.get('type') == 'hub' and hub_info.get('node_address') == self.address:
+                self.controller.remove_hub(hub_id)
+                return
 
     def stop(self):
         LOGGER.debug('NodeServer stopped.')
 
     def cmd_set_mode(self,command):
         LOGGER.debug(f'{self.lpfx}: {command}')
-        #self.set_mode(int(command.get('value'))) # Don't set it, let the callback handle it.
         val = int(command.get('value'))
         for mname in HOST_MODE_MAP:
             if HOST_MODE_MAP[mname] == val:

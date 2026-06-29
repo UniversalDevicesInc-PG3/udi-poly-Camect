@@ -5,7 +5,8 @@ import camect
 
 # My Nodea
 from nodes import Host
-from const import HOST_MODE_MAP,NODE_DEF_MAP
+from const import HOST_MODE_MAP,NODE_DEF_MAP,DETECTED_OBJECT_MAP
+from node_funcs import parse_host_port
 
 # IF you want a different log format than the current default
 #LOG_HANDLER.set_log_format('%(asctime)s %(threadName)-10s %(name)-18s %(levelname)-8s %(module)s:%(funcName)s: %(message)s')
@@ -24,7 +25,6 @@ class CamectController(Node):
         self.last_cam_num = {}
         self.in_discover = False
         self.hosts_connected = 0
-        self.config_st = False # Configuration good?
         self.user = ''
         self.password = ''
         # Cross reference of host and camera id's to their node.
@@ -66,6 +66,12 @@ class CamectController(Node):
                             'title': 'Camect Host or IP Address',
                             'isRequired': True,
                             'defaultValue': ['camect.local']
+                        },
+                        {
+                            'name': 'port',
+                            'title': 'Port',
+                            'isRequired': False,
+                            'defaultValue': ['443']
                         },
                     ]
                 },
@@ -211,6 +217,8 @@ class CamectController(Node):
         LOGGER.info(f'exit: level={level}')
 
     def query(self,command=None):
+        self.set_hosts_configured()
+        self.set_hosts_connected()
         self.reportDrivers()
 
     def heartbeat(self):
@@ -241,7 +249,13 @@ class CamectController(Node):
         """
         hmode = None
         for id,node in self.nodes_by_id.items():
-            tmode = node.camect.get_mode()
+            if node.camect is False:
+                continue
+            try:
+                tmode = node.camect.get_mode()
+            except Exception:
+                LOGGER.error(f'{node.name} failed to get mode', exc_info=True)
+                continue
             LOGGER.debug(f'{node.name} MODE={tmode}')
             if hmode is None:
                 hmode = tmode
@@ -277,7 +291,7 @@ class CamectController(Node):
         LOGGER.debug(f"got={ret}")
         return ret
     
-    def add_saved_hub(self,camect_info):
+    def add_saved_hub(self,camect_info, host, port):
         id = camect_info['id']
         LOGGER.debug(f"camect_info={camect_info}")
         hub_num = self.next_hub_num()
@@ -285,7 +299,9 @@ class CamectController(Node):
             'type':         'hub',
             'name':         camect_info['name'],
             'num':          hub_num,
-            'node_address': f'{hub_num:02d}'
+            'node_address': f'{hub_num:02d}',
+            'host':         host,
+            'port':         port,
         }
         LOGGER.debug(f"append new host: {ihost['node_address']}: {ihost}")
         self.saved_data[id] = ihost
@@ -301,7 +317,7 @@ class CamectController(Node):
         return last_hub + 1
 
     def get_saved_cam(self,icam):
-        return self.saved_data.get(id,None)
+        return self.saved_data.get(icam['id'],None)
 
     def get_saved_cameras(self,parent):
         ret = []
@@ -337,71 +353,159 @@ class CamectController(Node):
             LOGGER.debug(f"exsting camera for {parent.address} {address} name={icam['name']} saved_name={self.saved_data[icam['id']]['name']}")
             return address
         # Stored by parent adress
-        return self.add_saved_cam(icam,parent)['node_address']   
+        return self.add_saved_cam(icam,parent)['node_address']
+
+    def configured_endpoints(self):
+        endpoints = set()
+        if self.hosts is None:
+            return endpoints
+        for host_entry in self.hosts:
+            host, port = parse_host_port(host_entry)
+            endpoints.add((host.lower(), port))
+        return endpoints
+
+    def remove_stale_camera(self, cam_saved):
+        cam_id = cam_saved['id']
+        address = cam_saved['node_address']
+        LOGGER.warning(f'Removing stale camera {address} ({cam_saved.get("name", cam_id)})')
+        for cat in DETECTED_OBJECT_MAP:
+            child_addr = f'{address}_{cat}'[:14]
+            if self.poly.getNode(child_addr):
+                self.poly.delNode(child_addr)
+        if self.poly.getNode(address):
+            self.poly.delNode(address)
+        for host in self.nodes_by_id.values():
+            if cam_id in host.cams_by_id:
+                del host.cams_by_id[cam_id]
+        if cam_id in self.saved_data:
+            del self.saved_data[cam_id]
+        custom = Custom(self.poly, cam_id)
+        custom.delete(cam_id)
+
+    def remove_hub(self, hub_id):
+        hub_info = self.saved_data.get(hub_id)
+        if hub_info is None:
+            return
+        address = hub_info['node_address']
+        LOGGER.warning(f'Removing hub {address} ({hub_info.get("name", hub_id)})')
+        for camid, cam in list(self.saved_data.items()):
+            if cam.get('type') == 'cam' and cam.get('parent_address') == address:
+                self.remove_stale_camera(cam)
+        if hub_id in self.nodes_by_id:
+            del self.nodes_by_id[hub_id]
+        if self.poly.getNode(address):
+            self.poly.delNode(address)
+        if hub_id in self.saved_data:
+            del self.saved_data[hub_id]
+        custom = Custom(self.poly, hub_id)
+        custom.delete(hub_id)
+
+    def remove_orphan_hubs(self):
+        if self.hosts is None or len(self.hosts) == 0:
+            for hub_id, hub_info in list(self.saved_data.items()):
+                if hub_info.get('type') == 'hub':
+                    self.remove_hub(hub_id)
+            return
+        configured = self.configured_endpoints()
+        for hub_id, hub_info in list(self.saved_data.items()):
+            if hub_info.get('type') != 'hub':
+                continue
+            host = hub_info.get('host')
+            if not host:
+                continue
+            endpoint = (host.lower(), str(hub_info.get('port', '443')))
+            if endpoint not in configured:
+                LOGGER.warning(f'Hub {hub_info.get("name")} ({endpoint[0]}:{endpoint[1]}) no longer configured, removing')
+                self.remove_hub(hub_id)
+
+    def ensure_host(self, host_entry, camect_obj, camect_info):
+        host, port = parse_host_port(host_entry)
+        hub_info = self.get_saved_hub(camect_info)
+        if hub_info is None:
+            new = True
+            hub_info = self.add_saved_hub(camect_info, host, port)
+        else:
+            new = False
+            hub_info['host'] = host
+            hub_info['port'] = port
+            self.saved_data[camect_info['id']] = hub_info
+            custom = Custom(self.poly, camect_info['id'])
+            custom[camect_info['id']] = hub_info
+
+        hub_id = camect_info['id']
+        if hub_id in self.nodes_by_id:
+            self.nodes_by_id[hub_id].camect = camect_obj
+            self.nodes_by_id[hub_id].host = host
+            self.nodes_by_id[hub_id].port = port
+            return
+
+        hub_address = hub_info['node_address']
+        host_node = Host(self, hub_address, host, port, camect_obj, new)
+        if self.poly.getNode(hub_address):
+            self.nodes_by_id[hub_id] = host_node
+            host_node.activate()
+        else:
+            self.nodes_by_id[hub_id] = host_node
+            self.add_node(hub_address, host_node)
 
     def discover(self):
-        if self.config_st:
-            LOGGER.warning("discover can't run until config params are set...")
+        if not self.user or not self.password:
+            LOGGER.warning("discover skipped until credentials are configured")
             return
         if self.in_discover:
             LOGGER.warning("discover already running.")
             return
         self.in_discover = True
-        LOGGER.info(f'starting')
+        LOGGER.info('starting')
+        self.hosts_connected = 0
+        self.remove_orphan_hubs()
         if self.hosts is None:
             LOGGER.warning("No hosts configured...")
         else:
-            for host in self.hosts:
-                # Would be better to do this conneciton inside the Host object
-                # but addNode is async so we ned to get the address in this loop
-                # before addNode is called :()
-                camect_obj = self.connect_host(host['host'])
+            for host_entry in self.hosts:
+                host, port = parse_host_port(host_entry)
+                camect_obj = self.connect_host(host, port)
                 if camect_obj is not False:
-                    camect_info = camect_obj.get_info()
-                    hub_info = self.get_saved_hub(camect_info)
-                    if hub_info is None:
-                        new = True
-                        hub_info = self.add_saved_hub(camect_info)
-                    else:
-                        new = False
-                    # Does it need to be added?
                     try:
-                        if not self.poly.getNode(hub_info['node_address']):
-                            self.nodes_by_id[camect_info['id']] = Host(self, hub_info['node_address'], host['host'], camect_obj, new)
-                            self.add_node(hub_info['node_address'],self.nodes_by_id[camect_info['id']])
-                    except:
-                        LOGGER.error('Failed to add camect host {host}',exc_info=True)
+                        camect_info = camect_obj.get_info()
+                        self.ensure_host(host_entry, camect_obj, camect_info)
+                    except Exception:
+                        LOGGER.error(f'Failed to add camect host {host}:{port}', exc_info=True)
         self.in_discover = False
-        LOGGER.info("done")
+        LOGGER.info('done')
 
-        if self.hosts is None:
-            self.set_driver('GV2',0)
-        else:
-            self.set_driver('GV2',len(self.hosts))
-
+        self.set_hosts_configured()
         self.set_mode_all()
 
         LOGGER.info('completed')
 
     def delete(self):
-        LOGGER.info('Oh God I\'m being deleted. Nooooooooooooooooooooooooooooooooooooooooo.')
+        LOGGER.info('Camect controller deleted, removing configured hubs')
+        for hub_id in list(self.nodes_by_id.keys()):
+            self.remove_hub(hub_id)
 
     def stop(self):
         LOGGER.debug('NodeServer stopped.')
 
-    def reconnect_host(self,host):
-        self.hosts_connected -= 1
-        self.set_hosts_connected()
-        return self.connect_host(host)
+    def reconnect_host(self, host, port='443'):
+        return self.connect_host(host, port, increment=False)
 
-    def connect_host(self,host):
-        LOGGER.info(f'Connecting to {host}...')
+    def connect_notice_key(self, host, port):
+        return f'connect_{host}:{port}'
+
+    def connect_host(self, host, port='443', increment=True):
+        LOGGER.info(f'Connecting to {host}:{port}...')
+        notice_key = self.connect_notice_key(host, port)
         try:
-            camect_obj = camect.Home(f"{host}:443", self.user, self.password)
-        except:
-            LOGGER.error(f'Failed to connect to camect host {host}',exc_info=True)
+            camect_obj = camect.Home(f"{host}:{port}", self.user, self.password)
+        except Exception as err:
+            msg = f'Failed to connect to Camect at {host}:{port}: {err}'
+            LOGGER.error(msg, exc_info=True)
+            self.Notices[notice_key] = msg
             return False
-        self.hosts_connected += 1
+        self.Notices.delete(notice_key)
+        if increment:
+            self.hosts_connected += 1
         self.set_hosts_connected()
         LOGGER.info(f'Camect Name={camect_obj.get_name()}')
         LOGGER.debug(f'Camect Info={camect_obj.get_info()}')

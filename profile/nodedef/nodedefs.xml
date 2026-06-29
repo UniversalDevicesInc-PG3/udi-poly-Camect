@@ -72,8 +72,8 @@
         <editors />
         <sts>
             <st id="ST"   editor="bool" /> <!-- Any Object -->
-            <st id="GV0"  editor="bool" /> <!-- Person -->
-            <st id="GV1"  editor="bool" /> <!-- Santa Claus -->
+            <st id="GV0"  editor="bool" /> <!-- Santa Claus -->
+            <st id="GV1"  editor="bool" /> <!-- Person -->
         </sts>
         <cmds>
             <sends>
@@ -97,16 +97,16 @@
         <sts>
             <st id="ST"   editor="bool" /> <!-- Any Object -->
             <st id="GV0"  editor="bool" /> <!-- Amazon -->
-            <st id="GV1"  editor="bool" /> <!-- UPS -->
-            <st id="GV2"  editor="bool" /> <!-- USPS-->
-            <st id="GV3"  editor="bool" /> <!-- Bicycle -->
-            <st id="GV4"  editor="bool" /> <!-- Bus-->
-            <st id="GV5"  editor="bool" /> <!-- Car -->
-            <st id="GV6"  editor="bool" /> <!-- DHL -->
-            <st id="GV7"  editor="bool" /> <!-- FedEx -->
-            <st id="GV8"  editor="bool" /> <!-- Motorcycle -->
-            <st id="GV9"  editor="bool" /> <!-- Pickup -->
-            <st id="GV10" editor="bool" /> <!-- Royal Mail -->
+            <st id="GV1"  editor="bool" /> <!-- DHL -->
+            <st id="GV2"  editor="bool" /> <!-- FedEx -->
+            <st id="GV3"  editor="bool" /> <!-- Royal Mail -->
+            <st id="GV4"  editor="bool" /> <!-- UPS -->
+            <st id="GV5"  editor="bool" /> <!-- USPS -->
+            <st id="GV6"  editor="bool" /> <!-- Bicycle -->
+            <st id="GV7"  editor="bool" /> <!-- Bus -->
+            <st id="GV8"  editor="bool" /> <!-- Car -->
+            <st id="GV9"  editor="bool" /> <!-- Motorcycle -->
+            <st id="GV10" editor="bool" /> <!-- Pickup -->
             <st id="GV11" editor="bool" /> <!-- Truck -->
         </sts>
         <cmds>
@@ -145,7 +145,7 @@
         </cmds>
     </nodeDef>
 
-	<!-- Camera -->
+	<!-- Object: Animal -->
     <nodeDef id="animal" nls="animal">
         <editors />
         <sts>
@@ -162,6 +162,7 @@
             <st id="GV9"  editor="bool" /> <!-- Squirrel -->
             <st id="GV10" editor="bool" /> <!-- Unknown Animal -->
             <st id="GV11" editor="bool" /> <!-- Unknown Small Animal -->
+            <st id="GV12" editor="bool" /> <!-- Fox -->
         </sts>
         <cmds>
             <sends>
@@ -179,6 +180,7 @@
                 <cmd id="GV9" />
                 <cmd id="GV10" />
                 <cmd id="GV11" />
+                <cmd id="GV12" />
             </sends>
             <accepts>
                 <cmd id="DON" />
@@ -195,6 +197,7 @@
                 <cmd id="GV9" />
                 <cmd id="GV10" />
                 <cmd id="GV11" />
+                <cmd id="GV12" />
             </accepts>
         </cmds>
     </nodeDef>

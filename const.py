@@ -34,7 +34,6 @@ DETECTED_OBJECT_MAP = {
         'cat':                      { 'num': 2,  'name': 'Cat' },
         'deer':                     { 'num': 3,  'name': 'Deer' },
         'dog':                      { 'num': 4,  'name': 'Dog' },
-        'fox':                      { 'num': 12, 'name': 'Fox' },
         'mouse':                    { 'num': 5,  'name': 'Mouse' },
         'rabbit':                   { 'num': 6,  'name': 'Rabbit' },
         'raccoon':                  { 'num': 7,  'name': 'Raccoon' },
@@ -42,6 +41,7 @@ DETECTED_OBJECT_MAP = {
         'squirrel':                 { 'num': 9,  'name': 'Squirrel' },
         'unknown animal':           { 'num': 10, 'name': 'Unknown Animal' },
         'unknown small animal':     { 'num': 11, 'name': 'Unknown Small Animal' },
+        'fox':                      { 'num': 12, 'name': 'Fox' },
     },
     'insect': {
         'fly':                      { 'num':  0,  'name': 'Fly' },
@@ -49,3 +49,17 @@ DETECTED_OBJECT_MAP = {
     },
 
 }
+
+# Camect API object names that differ from DETECTED_OBJECT_MAP keys.
+OBJECT_ALIASES = {
+    'Amazon truck':             'Amazon',
+    'USPS truck':               'USPS',
+    'UPS':                      'UPS truck',
+    'Royal Mail':               'RoyalMail',
+}
+
+def normalize_object_name(name):
+    """Map Camect-reported object names to DETECTED_OBJECT_MAP keys."""
+    if name in OBJECT_ALIASES:
+        return OBJECT_ALIASES[name]
+    return name
