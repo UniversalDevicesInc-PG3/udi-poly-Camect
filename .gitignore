@@ -75,3 +75,13 @@ target/
 #Project specific
 polyinterface
 *.zip
+
+# Local runtime/security artifacts
+*.cert
+*.key
+.installed
+.local/
+
+# Local vendored camect-py clone + import shim symlink
+/camect-py/
+/camect
