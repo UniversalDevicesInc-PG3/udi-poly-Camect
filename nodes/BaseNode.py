@@ -17,7 +17,7 @@ class BaseNode(Node):
     delayed, we sometimes need to know the value before the DB is updated
     and Polyglot gets the update back.
     """
-    def set_driver(self,mdrv,val,default=0,force=False,report=True):
+    def set_driver(self,mdrv,val,default=0,force=False,report=True,uom=None):
         #LOGGER.debug(f'{self.lpfx} {mdrv},{val} default={default} force={force},report={report}')
         if val is None:
             # Restore from DB for existing nodes
@@ -29,13 +29,13 @@ class BaseNode(Node):
         val = default if val is None else int(val)
         try:
             if not mdrv in self.__my_drivers or val != self.__my_drivers[mdrv] or force:
-                self.setDriver(mdrv,val,report=report)
+                self.setDriver(mdrv,val,report=report,uom=uom)
                 info = ''
                 if self.id in NODE_DEF_MAP and mdrv in NODE_DEF_MAP[self.id]:
                     info += f"'{NODE_DEF_MAP[self.id][mdrv]['name']}' = "
                     info += f"'{NODE_DEF_MAP[self.id][mdrv]['keys'][val]}'" if val in NODE_DEF_MAP[self.id][mdrv]['keys'] else "'NOT IN NODE_DEF_MAP'"            
                 self.__my_drivers[mdrv] = val
-                LOGGER.debug(f'{self.lpfx} set_driver({mdrv},{val}) {info}')
+                LOGGER.debug(f'{self.lpfx} set_driver({mdrv},{val},uom={uom}) {info}')
             #else:
             #    LOGGER.debug(f'{self.lpfx} not necessary')
         except:

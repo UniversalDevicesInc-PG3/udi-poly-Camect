@@ -6,6 +6,7 @@ CMD-ctl-DISCOVER-NAME = Discover
 CMD-ctl-UPDATE_PROFILE-NAME = Update Profile
 CMD-ctl-SET_DM-NAME = Set Logger Level
 ST-ctl-ST-NAME = NodeServer Online
+ST-ctl-ERR-NAME = Errors
 ST-ctl-GV1-NAME = Logger Level
 ST-ctl-GV2-NAME = Camects Configured
 ST-ctl-GV3-NAME = Camects Connected
@@ -95,20 +96,48 @@ OBJ-29 = person and dog
 #
 ND-human-NAME = Human Detection
 ST-human-ST-NAME  = Detected
+ST-human-GPV-NAME = Object Name
 ST-human-GV0-NAME = Santa Claus
 ST-human-GV1-NAME = Person
+ST-human-GV2-NAME = Amazon
+ST-human-GV3-NAME = DHL
+ST-human-GV4-NAME = DPD
+ST-human-GV5-NAME = FedEx
+ST-human-GV6-NAME = Royal Mail
+ST-human-GV7-NAME = UPS
+ST-human-GV8-NAME = USPS
 CMD-human-GV0-NAME = Santa Claus
 CMD-human-GV1-NAME = Person
+CMD-human-GV2-NAME = Amazon
+CMD-human-GV3-NAME = DHL
+CMD-human-GV4-NAME = DPD
+CMD-human-GV5-NAME = FedEx
+CMD-human-GV6-NAME = Royal Mail
+CMD-human-GV7-NAME = UPS
+CMD-human-GV8-NAME = USPS
+
+HUM--1 = None
+HUM-0 = Santa Claus
+HUM-1 = Person
+HUM-2 = Amazon
+HUM-3 = DHL
+HUM-4 = DPD
+HUM-5 = FedEx
+HUM-6 = RoyalMail
+HUM-7 = UPS
+HUM-8 = USPS
+
 #
 # Object: Vehicle
 #
 ND-vehicle-NAME = Vehicle Detection
 ST-vehicle-ST-NAME  = Detected
+ST-vehicle-GPV-NAME = Object Name
 ST-vehicle-GV0-NAME = Amazon
 ST-vehicle-GV1-NAME = DHL
 ST-vehicle-GV2-NAME = FedEx
 ST-vehicle-GV3-NAME = Royal Mail
-ST-vehicle-GV4-NAME = UPS Truck
+ST-vehicle-GV4-NAME = UPS
 ST-vehicle-GV5-NAME = USPS
 ST-vehicle-GV6-NAME = Bicycle
 ST-vehicle-GV7-NAME = Bus
@@ -116,11 +145,12 @@ ST-vehicle-GV8-NAME = Car
 ST-vehicle-GV9-NAME = Motorcycle
 ST-vehicle-GV10-NAME = Pickup
 ST-vehicle-GV11-NAME = Truck
+
 CMD-vehicle-GV0-NAME = Amazon
 CMD-vehicle-GV1-NAME = DHL
 CMD-vehicle-GV2-NAME = FedEx
 CMD-vehicle-GV3-NAME = Royal Mail
-CMD-vehicle-GV4-NAME = UPS Truck
+CMD-vehicle-GV4-NAME = UPS
 CMD-vehicle-GV5-NAME = USPS
 CMD-vehicle-GV6-NAME = Bicycle
 CMD-vehicle-GV7-NAME = Bus
@@ -128,11 +158,27 @@ CMD-vehicle-GV8-NAME = Car
 CMD-vehicle-GV9-NAME = Motorcycle
 CMD-vehicle-GV10-NAME = Pickup
 CMD-vehicle-GV11-NAME = Truck
+
+VEH--1 = None
+VEH-0 = Amazon
+VEH-1 = DHL
+VEH-2 = FedEx
+VEH-3 = Royal Mail
+VEH-4 = UPS
+VEH-5 = USPS
+VEH-6 = Bicycle
+VEH-7 = Bus
+VEH-8 = Car
+VEH-9 = Motorcycle
+VEH-10 = Pickup
+VEH-11 = Truck
+
 #
 # Object: Animal
 #
 ND-animal-NAME = Animal Detection
 ST-animal-ST-NAME  = Detected
+ST-animal-GPV-NAME = Object Name
 ST-animal-GV0-NAME = Bear
 ST-animal-GV1-NAME = Bird
 ST-animal-GV2-NAME = Cat
@@ -159,15 +205,35 @@ CMD-animal-GV9-NAME = Squirrel
 CMD-animal-GV10-NAME = Unknown Animal
 CMD-animal-GV11-NAME = Unknown Small Animal
 CMD-animal-GV12-NAME = Fox
+
+ANM--1 = None
+ANM-0 = Bear
+ANM-1 = Bird
+ANM-2 = Cat
+ANM-3 = Deer
+ANM-4 = Dog
+ANM-5 = Mouse
+ANM-6 = Rabbit
+ANM-7 = Raccoon
+ANM-8 = Skunk
+ANM-9 = Squirrel
+ANM-10 = Unknown Animal
+ANM-11 = Unknown Small Animal
+
 #
 # Object: Insect
 #
 ND-insect-NAME = Insect Detection
 ST-insect-ST-NAME  = Detected
+ST-insect-GPV-NAME = Object Name
 ST-insect-GV0-NAME = Fly
 ST-insect-GV1-NAME = Spider
 CMD-insect-GV0-NAME = Fly
 CMD-insect-GV1-NAME = Spider
+
+INS--1 = None
+INS-0 = Fly
+INS-1 = Spider
 
 #
 # Object Detected, not used anymore

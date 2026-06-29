@@ -11,12 +11,14 @@ from node_funcs import parse_host_port
 # IF you want a different log format than the current default
 #LOG_HANDLER.set_log_format('%(asctime)s %(threadName)-10s %(name)-18s %(levelname)-8s %(module)s:%(funcName)s: %(message)s')
 
+
 class CamectController(Node):
     def __init__(self, poly, primary, address, name):
         super(CamectController, self).__init__(poly, primary, address, name)
         self.poly = poly
         self.name = 'Camect Controller'
         self.hb = 0
+        self.errors = 0
         self.n_queue = []
         self.nodes_by_id = {}
         self.hosts = None
@@ -91,7 +93,6 @@ class CamectController(Node):
         if (data['address'] == self.address):
             self.add_node_done()
 
-
     def wait_for_node_done(self):
         while len(self.n_queue) == 0:
             time.sleep(0.1)
@@ -116,7 +117,7 @@ class CamectController(Node):
         self.wait_for_node_done()
         gnode = self.poly.getNode(address)
         if gnode is None:
-            LOGGER.error('Failed to add node address')
+            self.error(f'Failed to add node address {cname} {address}')
         return node
 
     def add_node_done(self):
@@ -143,7 +144,7 @@ class CamectController(Node):
         # Make sure all the params exist.
         for param in params:
             if data is None or not param in data:
-                LOGGER.error(f'Add back missing param {param}')
+                self.error(f'Add back missing param {param}')
                 self.Params[param] = params[param]
                 # Can't do anything else because we will be called again due to param change
                 return
@@ -175,7 +176,10 @@ class CamectController(Node):
 
     def start(self):
         LOGGER.info('Started Camect NodeServer {}'.format(self.poly.serverdata['version']))
+        self.update_profile()
         self.set_driver('ST', 1)
+        self.set_driver('ERR', 0)
+        self.Notices.clear()
         self.set_hosts_configured()
         self.set_hosts_connected()
         self.heartbeat()
@@ -184,6 +188,7 @@ class CamectController(Node):
         # since that triggers it as well.
         self.has_st_bug = True if self.poly.pg3init['isyVersion'] == "5.4.4" or self.poly.pg3init['isyVersion'] == "5.3.4" else False
         LOGGER.warning(f"This ISY {self.poly.pg3init['isyVersion']} has_st_bug={self.has_st_bug}")
+        self.set_driver('ERR',0)
         self.start_done = True
         #self.set_debug_level()
         self.discover()
@@ -234,7 +239,7 @@ class CamectController(Node):
         if mname in HOST_MODE_MAP:
             self.set_mode(HOST_MODE_MAP[mname])
             return
-        LOGGER.error(f'Unknown Host Mode Name "{mname}"')
+        self.error(f'Unknown Host Mode Name "{mname}"')
 
     def set_mode(self,val=None):
         LOGGER.debug(f'val={val}')
@@ -471,6 +476,7 @@ class CamectController(Node):
                         self.ensure_host(host_entry, camect_obj, camect_info)
                     except Exception:
                         LOGGER.error(f'Failed to add camect host {host}:{port}', exc_info=True)
+                        self.error(f'Failed to add camect host {host}')
         self.in_discover = False
         LOGGER.info('done')
 
@@ -502,6 +508,7 @@ class CamectController(Node):
             msg = f'Failed to connect to Camect at {host}:{port}: {err}'
             LOGGER.error(msg, exc_info=True)
             self.Notices[notice_key] = msg
+            self.error(f'Failed to connect to camect host {host}')
             return False
         self.Notices.delete(notice_key)
         if increment:
@@ -522,6 +529,16 @@ class CamectController(Node):
 
     def set_module_logs(self,level):
         logging.getLogger('urllib3').setLevel(level)
+
+    def error(self,text,exc_info=False):
+        LOGGER.error(text,exc_info=exc_info)
+        if self.errors == 0:
+            self.error_text = text
+        else:
+            self.error_text += "<br>" + text
+        self.Notices['controller_error'] = self.error_text
+        self.errors += 1
+        self.set_driver('ERR',self.errors)
 
     """
     Create our own get/set driver methods because getDriver from Polyglot can be
@@ -550,12 +567,16 @@ class CamectController(Node):
             #else:
             #    LOGGER.debug(f'not necessary')
         except:
-            LOGGER.error(f'set_driver({mdrv},{val}) failed',exc_info=True)
+            self.error(f'set_driver({mdrv},{val}) failed',exc_info=True)
             return None
         return val
 
     def get_driver(self,mdrv):
         return self.__my_drivers[mdrv] if mdrv in self.__my_drivers else None
+
+    def update_profile(self):
+        LOGGER.info('start')
+        return self.poly.updateProfile()
 
     def cmd_discover(self,command):
         LOGGER.info('')
@@ -570,16 +591,21 @@ class CamectController(Node):
         for id,node in self.nodes_by_id.items():
             node.cmd_set_mode(command)
 
+    def cmd_update_profile(self,command):
+        self.update_profile()
+
     id = 'controller'
     commands = {
         'QUERY': query,
         'DISCOVER': cmd_discover,
         'SET_DM': cmd_set_debug_mode,
-        'SET_MODE': cmd_set_mode
-}
+        'SET_MODE': cmd_set_mode,
+        'UPDATE_PROFILE': cmd_update_profile,
+    }
     drivers = [
-        {'driver': 'ST',   'value':  1, 'uom': 25}, 
-        {'driver': 'MODE', 'value':  0, 'uom': 25}, # Host Mode of all Hosts
-        {'driver': 'GV2',  'value':  0, 'uom': 25}, # Camects Configured
-        {'driver': 'GV3',  'value':  0, 'uom': 25}, # Camects Connected
+        {'driver': 'ST',   'value':  1, 'uom': 25, 'name': 'Plugin Connected'}, 
+        {'driver': 'ERR',   'value': 0, 'uom': 56, 'name': 'Errors'},
+        {'driver': 'MODE', 'value':  0, 'uom': 25, 'name': 'Host Mode of all Hosts'},
+        {'driver': 'GV2',  'value':  0, 'uom': 25, 'name': 'Camects Configured'},
+        {'driver': 'GV3',  'value':  0, 'uom': 25, 'name': 'Camects Connected'},
     ]

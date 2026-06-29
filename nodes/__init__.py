@@ -1,6 +1,6 @@
 
 """ Node classes used by the Camect Node Server. """
-VERSION = "3.0.14"
+VERSION = "3.1.1"
 from .BaseNode          import BaseNode
 from .DetectedObject    import DetectedObject
 from .Camera            import Camera

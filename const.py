@@ -13,14 +13,40 @@ DETECTED_OBJECT_MAP = {
     'human': {
         'Santa Claus':              { 'num': 0,  'name': 'Santa Claus' },
         'person':                   { 'num': 1,  'name': 'Person' },
+        'Amazon person':            { 'num': 2,  'name': 'Amazon' },
+        'DHL person':               { 'num': 3,  'name': 'DHL' },
+        'DPD person':               { 'num': 4,  'name': 'DPD' },
+        'FedEx person':             { 'num': 5,  'name': 'FedEx' },
+        'RoyalMail person':         { 'num': 6,  'name': 'Royal Mail' },
+        'UPS person':               { 'num': 7,  'name': 'UPS' },
+        'USPS person':              { 'num': 8,  'name': 'USPS' },
     },
+
     'vehicle': {
         'Amazon':                   { 'num': 0,  'name': 'Amazon' },
+        'Amazon truck':             { 'num': 0,  'name': 'Amazon' },
+        'Amazon car':               { 'num': 0,  'name': 'Amazon' },
+        'Amazon pickup':            { 'num': 0,  'name': 'Amazon' },
         'DHL':                      { 'num': 1,  'name': 'DHL' },
+        'DHL truck':                { 'num': 1,  'name': 'DHL' },
+        'DHL car':                  { 'num': 1,  'name': 'DHL' },
+        'DHL pickup':               { 'num': 1,  'name': 'DHL' },
         'FedEx':                    { 'num': 2,  'name': 'FedEx' },
+        'FedEx truck':              { 'num': 2,  'name': 'FedEx' },
+        'FedEx car':                { 'num': 2,  'name': 'FedEx' },
+        'FedEx pickup':             { 'num': 2,  'name': 'FedEx' },
         'RoyalMail':                { 'num': 3,  'name': 'Royal Mail' },
+        'RoyalMail truck':          { 'num': 3,  'name': 'Royal Mail' },
+        'RoyalMail car':            { 'num': 3,  'name': 'Royal Mail' },
+        'RoyalMail pickup':         { 'num': 3,  'name': 'Royal Mail' },
+        'UPS':                      { 'num': 4,  'name': 'UPS' },
         'UPS truck':                { 'num': 4,  'name': 'UPS' },
+        'UPS car':                  { 'num': 4,  'name': 'UPS' },
+        'UPS pickup':               { 'num': 4,  'name': 'UPS' },
         'USPS':                     { 'num': 5,  'name': 'USPS' },
+        'USPS truck':               { 'num': 5,  'name': 'USPS' },
+        'USPS car':                 { 'num': 5,  'name': 'USPS' },
+        'USPS pickup':              { 'num': 5,  'name': 'USPS' },
         'bicycle':                  { 'num': 6,  'name': 'Bicycle' },
         'bus':                      { 'num': 7,  'name': 'Bus' },
         'car':                      { 'num': 8,  'name': 'Car' },
@@ -61,5 +87,8 @@ OBJECT_ALIASES = {
 def normalize_object_name(name):
     """Map Camect-reported object names to DETECTED_OBJECT_MAP keys."""
     if name in OBJECT_ALIASES:
-        return OBJECT_ALIASES[name]
+        name = OBJECT_ALIASES[name]
+    for sub in (' truck', ' car', ' pickup'):
+        if name.endswith(sub):
+            name = name.removesuffix(sub)
     return name

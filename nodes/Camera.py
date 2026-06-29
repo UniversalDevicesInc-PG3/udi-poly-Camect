@@ -53,7 +53,7 @@ class Camera(BaseNode):
 
     def update_status(self,cam,report=True):
         if cam is None:
-            LOGGER.error(f"{self.lpfx}: Camera info not defined, was it deleted from Camect?")
+            self.controller.error("Camera info not defined, was it deleted from Camect?  Please report this to the developer")
             self.set_driver('ST', 0, report=report)
             return
         self.cam = cam
@@ -68,7 +68,7 @@ class Camera(BaseNode):
             if 'detected_obj' in event:
                 self.detected_obj(event['detected_obj'])
             else:
-                LOGGER.error(f"Unknown alert, no detected_obj in {event}")
+                self.controller.error(f"Unknown alert, no detected_obj in {event}")
         elif event['type'] == 'alert_disabled':
             self.set_driver('MODE',0)
         elif event['type'] == 'alert_enabled':
@@ -79,8 +79,7 @@ class Camera(BaseNode):
             self.set_driver('ST',1)
         else:
             msg = f"Unknown event type {event['type']} in {event}"
-            LOGGER.error(msg)
-            self.controller.poly.Notices['callback'] = msg
+            self.controller.error(msg)
             
     def detected_obj(self,object_list):
         LOGGER.debug(f"{self.lpfx} {object_list}")
@@ -91,7 +90,10 @@ class Camera(BaseNode):
                 self.set_driver('ALARM',1)
                 self.detected_obj_by_type[obj].turn_on(obj)
             else:
-                LOGGER.error(f"Unsupported detected object '{obj}'")
+                self.error(f"Unsupported detected object '{obj}'")
+
+    def error(self,text):
+        self.controller.error(f"{self.cam['name']}: {text}")
 
     def cmd_alert_on(self, command):
         LOGGER.info("")
@@ -115,10 +117,10 @@ class Camera(BaseNode):
 
     hint = [1,2,3,4]
     drivers = [
-        {'driver': 'ST',  'value': 0, 'uom': 2}, # Enabled
-        {'driver': 'ALARM', 'value': 0, 'uom': 2}, # Detected
-        {'driver': 'MODE', 'value': 0, 'uom': 2}, # Alerting
-        {'driver': 'GPV', 'value': 0, 'uom': 2}, # Streaming
+        {'driver': 'ST',    'value': 0, 'uom': 2,  'name': 'Enabled'},
+        {'driver': 'ALARM', 'value': 0, 'uom': 2,  'name': 'Detected'},
+        {'driver': 'MODE',  'value': 0, 'uom': 2,  'name': 'Alerting'},
+        {'driver': 'GPV',   'value': 0, 'uom': 2,  'name': 'Streaming'},
         ]
     id = 'camera'
     commands = {

@@ -5,6 +5,7 @@
         <editors />
         <sts>
 			<st id="ST" editor="cst" />
+            <st id="ERR" editor="I_CNT" /> <!-- Errors -->
             <st id="MODE" editor="I_HMODEM" /> <!-- Host Mode, MIXED, DEFAULT, HOME -->
             <st id="GV2" editor="I_CNT" /> <!-- Camects Configured -->
             <st id="GV3" editor="I_CNT" /> <!-- Camects Connected -->
@@ -19,8 +20,9 @@
                 <cmd id="SET_MODE">
                     <p id="" editor="I_HMODE" init="MODE" />
                 </cmd>
-              <cmd id="QUERY" />
-              <cmd id="DISCOVER" />
+                <cmd id="QUERY" />
+                <cmd id="DISCOVER" />
+                <cmd id="UPDATE_PROFILE" />
             </accepts>
         </cmds>
     </nodeDef>
@@ -72,8 +74,16 @@
         <editors />
         <sts>
             <st id="ST"   editor="bool" /> <!-- Any Object -->
-            <st id="GV0"  editor="bool" /> <!-- Santa Claus -->
-            <st id="GV1"  editor="bool" /> <!-- Person -->
+            <st id="GPV"  editor="I_HUM"  /> <!-- Object Name -->
+            <st id="GV0"  editor="bool" /> <!-- Person -->
+            <st id="GV1"  editor="bool" /> <!-- Santa Claus -->
+            <st id="GV2"   editor="bool" /> <!-- Amazon -->
+            <st id="GV3"   editor="bool" /> <!-- DHL -->
+            <st id="GV4"   editor="bool" /> <!-- DPD -->
+            <st id="GV5"   editor="bool" /> <!-- FedEx -->
+            <st id="GV6"   editor="bool" /> <!-- Royal Mail -->
+            <st id="GV7"   editor="bool" /> <!-- UPS -->
+            <st id="GV8"   editor="bool" /> <!-- USPS -->
         </sts>
         <cmds>
             <sends>
@@ -81,12 +91,26 @@
                 <cmd id="DOF" /> 
                 <cmd id="GV0" />
                 <cmd id="GV1" />
+                <cmd id="GV2" />
+                <cmd id="GV3" />
+                <cmd id="GV4" />
+                <cmd id="GV5" />
+                <cmd id="GV6" />
+                <cmd id="GV7" />
+                <cmd id="GV8" />
             </sends>
             <accepts>
                 <cmd id="DON" />
                 <cmd id="DOF" />
                 <cmd id="GV0" />
                 <cmd id="GV1" />
+                <cmd id="GV2" />
+                <cmd id="GV3" />
+                <cmd id="GV4" />
+                <cmd id="GV5" />
+                <cmd id="GV6" />
+                <cmd id="GV7" />
+                <cmd id="GV8" />
             </accepts>
         </cmds>
     </nodeDef>
@@ -95,19 +119,20 @@
     <nodeDef id="vehicle" nls="vehicle">
         <editors />
         <sts>
-            <st id="ST"   editor="bool" /> <!-- Any Object -->
-            <st id="GV0"  editor="bool" /> <!-- Amazon -->
-            <st id="GV1"  editor="bool" /> <!-- DHL -->
-            <st id="GV2"  editor="bool" /> <!-- FedEx -->
-            <st id="GV3"  editor="bool" /> <!-- Royal Mail -->
-            <st id="GV4"  editor="bool" /> <!-- UPS -->
-            <st id="GV5"  editor="bool" /> <!-- USPS -->
-            <st id="GV6"  editor="bool" /> <!-- Bicycle -->
-            <st id="GV7"  editor="bool" /> <!-- Bus -->
-            <st id="GV8"  editor="bool" /> <!-- Car -->
-            <st id="GV9"  editor="bool" /> <!-- Motorcycle -->
-            <st id="GV10" editor="bool" /> <!-- Pickup -->
-            <st id="GV11" editor="bool" /> <!-- Truck -->
+            <st id="ST"    editor="bool" /> <!-- Any Object -->
+            <st id="GPV"   editor="I_VEH"  /> <!-- Object Name -->
+            <st id="GV0"   editor="bool" /> <!-- Amazon -->
+            <st id="GV1"   editor="bool" /> <!-- DHL -->
+            <st id="GV2"   editor="bool" /> <!-- FedEx -->
+            <st id="GV3"   editor="bool" /> <!-- Royal Mail -->
+            <st id="GV4"   editor="bool" /> <!-- UPS -->
+            <st id="GV5"   editor="bool" /> <!-- USPS -->
+            <st id="GV6"   editor="bool" /> <!-- Bicycle -->
+            <st id="GV7"   editor="bool" /> <!-- Bus-->
+            <st id="GV8"   editor="bool" /> <!-- Car -->
+            <st id="GV9"   editor="bool" /> <!-- Motorcycle -->
+            <st id="GV10"  editor="bool" /> <!-- Pickup -->
+            <st id="GV11"  editor="bool" /> <!-- Truck -->
         </sts>
         <cmds>
             <sends>
@@ -150,6 +175,7 @@
         <editors />
         <sts>
             <st id="ST"   editor="bool" /> <!-- Any Object -->
+            <st id="GPV"   editor="I_ANM"  /> <!-- Object Name -->
             <st id="GV0"  editor="bool" /> <!-- Bear -->
             <st id="GV1"  editor="bool" /> <!-- Bird -->
             <st id="GV2"  editor="bool" /> <!-- Cat -->
@@ -207,6 +233,7 @@
         <editors />
         <sts>
             <st id="ST"  editor="bool" /> <!-- Any Object -->
+            <st id="GPV" editor="I_INS" /> <!-- Object Name -->
             <st id="GV0" editor="bool" /> <!-- Fly -->
             <st id="GV1" editor="bool" /> <!-- Spider -->
         </sts>
