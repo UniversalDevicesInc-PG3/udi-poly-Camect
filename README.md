@@ -8,7 +8,7 @@ If you don't have a Camect yet, or will be purchasing another one then please vi
 
 ## Installation
 
-Install from the Polyglot Store.  See [Configuration](POLYGLOT_CONFIG.md) on the configuration page after installing.
+Install from the Polyglot Store.  See **[CONFIG.md](CONFIG.md)** on the configuration page after installing.
 
 ## Requirements
 
@@ -128,6 +128,11 @@ There is a confirmed bug in IoP verison 5.4.4 which should hopefully be fixed so
 It is always recommended to use "Control" events when writing programs, so when this workaround is eventually removed you will not be rquired to change anything.
 
 ## Version History
+- 3.1.2: 07/02/2026
+  - Add Fox NLS label for detected objects in Admin Console
+  - Push profile to IoX on startup (`updateProfile`)
+  - Publish CONFIG.md as configuration help (markdown2)
+  - Fix connection notices and ERR driver sync on restart
 - 3.1.1: 06/28/2026
   - Fix restart rehydration of Host/Camera Python objects
   - Add configurable Camect port per host (#24)

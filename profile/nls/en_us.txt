@@ -219,6 +219,7 @@ ANM-8 = Skunk
 ANM-9 = Squirrel
 ANM-10 = Unknown Animal
 ANM-11 = Unknown Small Animal
+ANM-12 = Fox
 
 #
 # Object: Insect

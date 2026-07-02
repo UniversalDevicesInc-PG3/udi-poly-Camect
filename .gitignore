@@ -85,3 +85,5 @@ polyinterface
 # Local vendored camect-py clone + import shim symlink
 /camect-py/
 /camect
+*.lock
+*.pid

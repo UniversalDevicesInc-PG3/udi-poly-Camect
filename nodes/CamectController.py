@@ -1,4 +1,7 @@
 
+from pathlib import Path
+
+import markdown2
 from udi_interface import Node,LOG_HANDLER,LOGGER,Custom
 import logging,time,json
 import camect
@@ -122,8 +125,6 @@ class CamectController(Node):
 
     def add_node_done(self):
         LOGGER.debug("start")
-        if self.user != "" and self.password != "":
-            self.discover()
         LOGGER.debug("done")
 
     def parameterHandler(self,data):
@@ -172,14 +173,23 @@ class CamectController(Node):
         self.hosts = self.TypedData['hosts']
         self.set_hosts_configured()
         self.typedDataHandler_done = True
-        self.discover()
+        if self.start_done:
+            self.discover()
 
     def start(self):
         LOGGER.info('Started Camect NodeServer {}'.format(self.poly.serverdata['version']))
-        self.update_profile()
+        cfg_md = Path(__file__).resolve().parent.parent / 'CONFIG.md'
+        if cfg_md.is_file():
+            try:
+                self.poly.setCustomParamsDoc(
+                    markdown2.markdown_path(
+                        str(cfg_md),
+                        extras=['tables', 'fenced-code-blocks'],
+                    )
+                )
+            except Exception:
+                LOGGER.exception('Failed to convert/set CONFIG.md as custom params doc')
         self.set_driver('ST', 1)
-        self.set_driver('ERR', 0)
-        self.Notices.clear()
         self.set_hosts_configured()
         self.set_hosts_connected()
         self.heartbeat()
@@ -188,10 +198,10 @@ class CamectController(Node):
         # since that triggers it as well.
         self.has_st_bug = True if self.poly.pg3init['isyVersion'] == "5.4.4" or self.poly.pg3init['isyVersion'] == "5.3.4" else False
         LOGGER.warning(f"This ISY {self.poly.pg3init['isyVersion']} has_st_bug={self.has_st_bug}")
-        self.set_driver('ERR',0)
         self.start_done = True
         #self.set_debug_level()
         self.discover()
+        self.sync_error_driver()
         LOGGER.debug('done')
 
     def poll(self, polltype):
@@ -360,6 +370,23 @@ class CamectController(Node):
         # Stored by parent adress
         return self.add_saved_cam(icam,parent)['node_address']
 
+    def configured_connect_notice_keys(self):
+        keys = set()
+        if self.hosts is None:
+            return keys
+        for host_entry in self.hosts:
+            host, port = parse_host_port(host_entry)
+            keys.add(self.connect_notice_key(host, port))
+        return keys
+
+    def prune_stale_connect_notices(self):
+        """Remove connect_* notices for hosts no longer in config."""
+        configured = self.configured_connect_notice_keys()
+        for key in list(self.Notices.keys()):
+            if key.startswith('connect_') and key not in configured:
+                LOGGER.debug(f'Removing stale connect notice {key}')
+                self.Notices.delete(key)
+
     def configured_endpoints(self):
         endpoints = set()
         if self.hosts is None:
@@ -461,29 +488,38 @@ class CamectController(Node):
             LOGGER.warning("discover already running.")
             return
         self.in_discover = True
-        LOGGER.info('starting')
-        self.hosts_connected = 0
-        self.remove_orphan_hubs()
-        if self.hosts is None:
-            LOGGER.warning("No hosts configured...")
-        else:
-            for host_entry in self.hosts:
-                host, port = parse_host_port(host_entry)
-                camect_obj = self.connect_host(host, port)
-                if camect_obj is not False:
-                    try:
-                        camect_info = camect_obj.get_info()
-                        self.ensure_host(host_entry, camect_obj, camect_info)
-                    except Exception:
-                        LOGGER.error(f'Failed to add camect host {host}:{port}', exc_info=True)
-                        self.error(f'Failed to add camect host {host}')
-        self.in_discover = False
-        LOGGER.info('done')
-
-        self.set_hosts_configured()
-        self.set_mode_all()
-
-        LOGGER.info('completed')
+        try:
+            LOGGER.info('starting')
+            self.hosts_connected = 0
+            self.prune_stale_connect_notices()
+            self.remove_orphan_hubs()
+            if self.hosts is None:
+                LOGGER.warning("No hosts configured...")
+            else:
+                for host_entry in self.hosts:
+                    host, port = parse_host_port(host_entry)
+                    camect_obj = self.connect_host(host, port)
+                    if camect_obj is not False:
+                        try:
+                            camect_info = camect_obj.get_info()
+                            self.ensure_host(host_entry, camect_obj, camect_info)
+                        except Exception:
+                            LOGGER.error(f'Failed to add camect host {host}:{port}', exc_info=True)
+                            self.error(f'Failed to add camect host {host}')
+            LOGGER.info('done')
+        except Exception:
+            LOGGER.error('discover failed', exc_info=True)
+            self.error('Discovery failed — check debug log for details')
+        finally:
+            self.in_discover = False
+            self.set_hosts_configured()
+            self.set_mode_all()
+            self.sync_error_driver()
+            if self.hosts and self.hosts_connected == len(self.hosts):
+                self.Notices.delete('controller_error')
+                self.errors = 0
+                self.error_text = ''
+            LOGGER.info('completed')
 
     def delete(self):
         LOGGER.info('Camect controller deleted, removing configured hubs')
@@ -499,6 +535,11 @@ class CamectController(Node):
     def connect_notice_key(self, host, port):
         return f'connect_{host}:{port}'
 
+    def sync_error_driver(self):
+        """Set ERR from active connect_* notices (not controller_error churn)."""
+        connect_failures = sum(1 for key in self.Notices.keys() if key.startswith('connect_'))
+        self.set_driver('ERR', connect_failures)
+
     def connect_host(self, host, port='443', increment=True):
         LOGGER.info(f'Connecting to {host}:{port}...')
         notice_key = self.connect_notice_key(host, port)
@@ -508,7 +549,6 @@ class CamectController(Node):
             msg = f'Failed to connect to Camect at {host}:{port}: {err}'
             LOGGER.error(msg, exc_info=True)
             self.Notices[notice_key] = msg
-            self.error(f'Failed to connect to camect host {host}')
             return False
         self.Notices.delete(notice_key)
         if increment:
