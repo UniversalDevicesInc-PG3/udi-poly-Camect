@@ -3,6 +3,9 @@
     <editor id="bool">
         <range uom="2" subset="0,1" />
     </editor>
+    <editor id="hst">
+      <range uom="25" subset="0-2" nls="HST"/>
+    </editor>
     <editor id="cst">
       <range uom="25" subset="0,1,2" nls="CST"/>
     </editor>

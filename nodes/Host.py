@@ -1,5 +1,4 @@
 
-
 import time
 from udi_interface import LOGGER
 from nodes import BaseNode
@@ -10,11 +9,17 @@ from const import HOST_MODE_MAP
 # My functions
 from node_funcs import get_valid_node_name
 
+# Host ST (UOM 25) — Camect Connected
+ST_DISCONNECTED = 0
+ST_CONNECTED = 1
+ST_SYNCED = 2
+
+
 class Host(BaseNode):
     id = 'host'
     drivers = [
-        {'driver': 'ST', 'value': 1, 'uom': 2}, 
-        {'driver': 'MODE', 'value': 1, 'uom': 25}, 
+        {'driver': 'ST', 'value': 0, 'uom': 25},
+        {'driver': 'MODE', 'value': 1, 'uom': 25},
     ]
 
     def __init__(self, controller, address, host, port, camect_obj, new=True):
@@ -39,7 +44,7 @@ class Host(BaseNode):
         if self.ready:
             return
         LOGGER.info(f'Started Camect Host {self.address}:{self.name}')
-        self.set_driver('ST',1)
+        self.set_connection_status()
         if self.camect is not False:
             self.set_mode_by_name(self.camect.get_mode())
         # We only rediscover a newly added device
@@ -48,8 +53,37 @@ class Host(BaseNode):
         else:
             self.add_saved()
         if self.camect is not False:
-            self.camect.add_event_listener(self.callback)
+            self._register_hub_listeners()
+            # WS may already be open before the listener was attached
+            self.set_connection_status()
         self.ready = True
+
+    def _register_hub_listeners(self):
+        """Attach event/connection listeners (new Hub after reconnect)."""
+        if self.camect is False:
+            return
+        self.camect.add_event_listener(self.callback)
+        add_conn = getattr(self.camect, 'add_connection_listener', None)
+        if callable(add_conn):
+            add_conn(self._on_ws_connection)
+
+    def _on_ws_connection(self, connected):
+        """Update ST when the event websocket connects or drops."""
+        LOGGER.debug(f'{self.lpfx}: event stream connected={connected}')
+        self.set_connection_status()
+
+    def set_connection_status(self, report=True):
+        """Set Host ST from HTTP client + event websocket state."""
+        if self.camect is False:
+            return self.set_driver('ST', ST_DISCONNECTED, report=report, uom=25)
+        try:
+            if self.camect.is_event_stream_connected():
+                val = ST_SYNCED
+            else:
+                val = ST_CONNECTED
+        except AttributeError:
+            val = ST_CONNECTED
+        return self.set_driver('ST', val, report=report, uom=25)
 
     def list_cameras(self):
         try:
@@ -67,19 +101,27 @@ class Host(BaseNode):
 
     def update_status(self,cams=False,report=True):
         LOGGER.debug(f'{self.lpfx} cams={cams} report={report}')
+        reconnected = False
         # Reconnect?
         if self.camect is False:
             LOGGER.warning(f'{self.lpfx}: reconnecting since camect={self.camect}')
             self.camect = self.controller.reconnect_host(self.host, self.port)
+            reconnected = self.camect is not False
         if self.camect is False:
-            self.set_driver('ST',0,report=report)
+            self.set_connection_status(report=report)
             return False
-        self.set_driver('ST',1,report=report)
+        if reconnected:
+            self._register_hub_listeners()
+        self.set_connection_status(report=report)
         if cams:
             LOGGER.debug(f'{self.lpfx} Updating cams... {cams}')
             for cam in self.list_cameras():
                 if cam['id'] in self.cams_by_id:
                     self.cams_by_id[cam['id']].update_status(cam)
+            # list_cameras failure clears camect; refresh ST if so
+            if self.camect is False:
+                self.set_connection_status(report=report)
+                return False
         return True
 
     def shortPoll(self):

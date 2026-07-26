@@ -44,6 +44,8 @@ The main controller node.
     - Mixed - Mixutre of Home/Default
   - Comects Configured: Number of Camect Hosts configured
   - Camects Connected: Number of Camect Hosts connected
+  - Errors: Count of active config/connect problems (empty user/password,
+    no Camect Hosts, or hub connect failures). Cleared when those are fixed.
   - Logger Level: The current Logging level
 
 - The Controls available:
@@ -63,11 +65,18 @@ The main controller node.
 
 A node is created for each Camect Host device.
 
-- The Satus shows:
-  - Camect Connected: Status of connection to your Camect
+- The Status shows:
+  - Camect Connected: Connection quality to that Camect hub
+    - Disconnected — hub unreachable / reconnect failed
+    - Connected — HTTP API works; waiting for the event stream
+    - Synced — HTTP API works and the event websocket is open (alerts/mode updates)
   - Mode: The Mode of the Camect
     - Default
     - Home
+
+ISY programs that previously treated Camect Connected as a boolean should use
+**Camect Connected is not Disconnected** for “hub is up”, and
+**Camect Connected is Synced** when you need the live event stream.
 
 - The Controls available:
   - Set Mode:
@@ -82,14 +91,19 @@ The discover command is used when you add or enable a camera on a Camect then ru
 A node is created for each Camera.
 
 - The Status shows:
-  - Enabled: If the Camera is enabled
+  - Enabled: If the Camera is enabled in Camect
+  - Online: Whether the camera is online (from Camect `camera_online` /
+    `camera_offline` events). ListCameras has no online flag, so on start/restart
+    Online defaults to True until an offline event arrives.
   - Alerting: If the Camera is sending Alerts
   - Streaming: If the Camera is streaming
 - The Controls Available:
   - Enabled: [Not possible yet](https://github.com/jimboca/udi-poly-Camect/issues/1)
   - Alerting
 
-Note that Alerting is updated immediatly from the Camect API when it is changed.  Enabled takes a while (3 minutes by default). Streaming is not ever sent so you must query to get that.  Hopefully Camect will add callbacks for these funcitons in the future.
+Note that Alerting and Online are updated immediately from Camect events.
+Enabled takes a while (3 minutes by default) unless you Query. Streaming is
+not sent via events, so Query or shortPoll is needed for that.
 
 ![A Camera Node](pics/OutFrontDoor.png)
 
@@ -128,6 +142,12 @@ There is a confirmed bug in IoP verison 5.4.4 which should hopefully be fixed so
 It is always recommended to use "Control" events when writing programs, so when this workaround is eventually removed you will not be rquired to change anything.
 
 ## Version History
+- 3.1.3: 07/26/2026
+  - Host Camect Connected: Disconnected / Connected / Synced
+  - Camera Online status separate from Enabled (#10)
+  - Config Notices/Errors for empty user/password or no hosts; clear when complete
+  - Re-register event listeners after hub reconnect
+  - Install camect from jimboca/camect-py fork (install.sh clone + symlink)
 - 3.1.2: 07/02/2026
   - Add Fox NLS label for detected objects in Admin Console
   - Push profile to IoX on startup (`updateProfile`)

@@ -129,7 +129,7 @@ class CamectController(Node):
 
     def parameterHandler(self,data):
         LOGGER.debug("Enter data={}".format(data))
-        # Our defaults, make sure the exist in case user deletes one
+        # Our defaults, make sure they exist in case user deletes one
         params = {
             'user': '',
             'password': "",
@@ -139,31 +139,19 @@ class CamectController(Node):
             # Load what we have
            self.Params.load(data)
 
-        # Assume we are good unless something bad is found
-        st = True
-
-        # Make sure all the params exist.
+        # Make sure all the params exist (do not treat seeding as an error).
         for param in params:
             if data is None or not param in data:
-                self.error(f'Add back missing param {param}')
+                LOGGER.info(f'Seeding missing custom param {param}')
                 self.Params[param] = params[param]
                 # Can't do anything else because we will be called again due to param change
                 return
 
-        # Make sure they all have a value that is not the default
-        for param in params:
-            if data[param] == "" or (data[param] == params[param] and param != "change_node_names"):
-                msg = f'Please define {param}'
-                LOGGER.error(msg)
-                self.Notices[param] = msg
-                st = False
-            else:
-                self.Notices.delete(param)
+        self.user     = self.Params['user'] or ''
+        self.password = self.Params['password'] or ''
 
-        self.user     = self.Params['user']
-        self.password = self.Params['password']
-
-        self.paramHandler_done = st
+        self.refresh_config_notices()
+        self.paramHandler_done = self.config_is_complete()
 
         LOGGER.debug(f'exit: {self.paramHandler_done}')
 
@@ -173,8 +161,47 @@ class CamectController(Node):
         self.hosts = self.TypedData['hosts']
         self.set_hosts_configured()
         self.typedDataHandler_done = True
-        if self.start_done:
+        self.refresh_config_notices()
+        if self.start_done and self.config_is_complete():
             self.discover()
+
+    def _has_configured_hosts(self):
+        if not self.hosts:
+            return False
+        for host_entry in self.hosts:
+            host = (host_entry or {}).get('host')
+            if host is not None and str(host).strip() != '':
+                return True
+        return False
+
+    def config_is_complete(self):
+        """True when user, password, and at least one Camect Host are set."""
+        if not self.user or not self.password:
+            return False
+        # Until typed hosts load, do not claim complete
+        if not self.typedDataHandler_done:
+            return False
+        return self._has_configured_hosts()
+
+    def refresh_config_notices(self):
+        """Show/clear config notices and sync ERR (empty creds / no hosts)."""
+        if not self.user:
+            self.Notices['user'] = 'Please define user'
+        else:
+            self.Notices.delete('user')
+
+        if not self.password:
+            self.Notices['password'] = 'Please define password'
+        else:
+            self.Notices.delete('password')
+
+        if self.typedDataHandler_done:
+            if not self._has_configured_hosts():
+                self.Notices['hosts'] = 'Please add at least one Camect Host'
+            else:
+                self.Notices.delete('hosts')
+
+        self.sync_error_driver()
 
     def start(self):
         LOGGER.info('Started Camect NodeServer {}'.format(self.poly.serverdata['version']))
@@ -200,8 +227,10 @@ class CamectController(Node):
         LOGGER.warning(f"This ISY {self.poly.pg3init['isyVersion']} has_st_bug={self.has_st_bug}")
         self.start_done = True
         #self.set_debug_level()
-        self.discover()
-        self.sync_error_driver()
+        if self.config_is_complete():
+            self.discover()
+        else:
+            self.refresh_config_notices()
         LOGGER.debug('done')
 
     def poll(self, polltype):
@@ -514,11 +543,11 @@ class CamectController(Node):
             self.in_discover = False
             self.set_hosts_configured()
             self.set_mode_all()
-            self.sync_error_driver()
             if self.hosts and self.hosts_connected == len(self.hosts):
                 self.Notices.delete('controller_error')
                 self.errors = 0
                 self.error_text = ''
+            self.refresh_config_notices()
             LOGGER.info('completed')
 
     def delete(self):
@@ -536,9 +565,18 @@ class CamectController(Node):
         return f'connect_{host}:{port}'
 
     def sync_error_driver(self):
-        """Set ERR from active connect_* notices (not controller_error churn)."""
-        connect_failures = sum(1 for key in self.Notices.keys() if key.startswith('connect_'))
-        self.set_driver('ERR', connect_failures)
+        """Set ERR from config notices + connect_* notices; clear when none."""
+        config_keys = {'user', 'password', 'hosts'}
+        problem_count = 0
+        for key in self.Notices.keys():
+            if key.startswith('connect_') or key in config_keys:
+                problem_count += 1
+        # Drop stale bootstrap/controller_error once config+connect are clean
+        if problem_count == 0 and 'controller_error' in self.Notices:
+            self.Notices.delete('controller_error')
+            self.errors = 0
+            self.error_text = ''
+        self.set_driver('ERR', problem_count)
 
     def connect_host(self, host, port='443', increment=True):
         LOGGER.info(f'Connecting to {host}:{port}...')
@@ -549,11 +587,13 @@ class CamectController(Node):
             msg = f'Failed to connect to Camect at {host}:{port}: {err}'
             LOGGER.error(msg, exc_info=True)
             self.Notices[notice_key] = msg
+            self.sync_error_driver()
             return False
         self.Notices.delete(notice_key)
         if increment:
             self.hosts_connected += 1
         self.set_hosts_connected()
+        self.sync_error_driver()
         LOGGER.info(f'Camect Name={camect_obj.get_name()}')
         LOGGER.debug(f'Camect Info={camect_obj.get_info()}')
         return camect_obj

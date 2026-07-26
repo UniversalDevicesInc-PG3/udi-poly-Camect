@@ -27,6 +27,10 @@ class Camera(BaseNode):
         LOGGER.debug(f'{self.lpfx} Starting...')
         if self.cam is not None:
             self.update_status(self.cam)
+            # ListCameras has no online flag; assume online until an event says otherwise
+            self.set_online(True)
+        else:
+            self.set_online(False)
         self.set_driver('ALARM',0)
         for cat in DETECTED_OBJECT_MAP:
             address = f'{self.address}_{cat}'[:14]
@@ -51,16 +55,24 @@ class Camera(BaseNode):
         self.update_status(self.host.list_camera(self.cam['id']),report=False)
         self.reportDrivers()
 
+    def set_online(self, online, report=True):
+        """Set Online status (True=online, False=offline)."""
+        self.set_driver('GV1', 1 if online else 0, report=report)
+
     def update_status(self,cam,report=True):
         if cam is None:
             self.controller.error("Camera info not defined, was it deleted from Camect?  Please report this to the developer")
             self.set_driver('ST', 0, report=report)
+            self.set_online(False, report=report)
             return
         self.cam = cam
+        # ST = Enabled in Camect (not online/offline)
         self.set_driver('ST',0   if cam['disabled']           else 1, report=report)
         self.set_driver('MODE',0 if cam['is_alert_disabled']  else 1, report=report)
         self.set_driver('GPV', 1 if cam['is_streaming']       else 0, report=report)
         self.set_driver('ALARM', 0)
+        # Online (GV1) is owned by camera_online/offline events after start;
+        # do not overwrite it from poll so shortPoll cannot clear offline.
 
     def callback(self,event):
         LOGGER.debug(f"{self.lpfx} type={event['type']}")
@@ -74,9 +86,9 @@ class Camera(BaseNode):
         elif event['type'] == 'alert_enabled':
             self.set_driver('MODE',1)
         elif event['type'] == 'camera_offline':
-            self.set_driver('ST',0)
+            self.set_online(False)
         elif event['type'] == 'camera_online':
-            self.set_driver('ST',1)
+            self.set_online(True)
         else:
             msg = f"Unknown event type {event['type']} in {event}"
             self.controller.error(msg)
@@ -118,6 +130,7 @@ class Camera(BaseNode):
     hint = [1,2,3,4]
     drivers = [
         {'driver': 'ST',    'value': 0, 'uom': 2,  'name': 'Enabled'},
+        {'driver': 'GV1',   'value': 1, 'uom': 2,  'name': 'Online'},
         {'driver': 'ALARM', 'value': 0, 'uom': 2,  'name': 'Detected'},
         {'driver': 'MODE',  'value': 0, 'uom': 2,  'name': 'Alerting'},
         {'driver': 'GPV',   'value': 0, 'uom': 2,  'name': 'Streaming'},

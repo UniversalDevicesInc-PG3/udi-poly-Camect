@@ -31,7 +31,7 @@
     <nodeDef id="host" nls="host">
         <editors />
         <sts>
-            <st id="ST" editor="bool" /> <!-- Camect Connected -->
+            <st id="ST" editor="hst" /> <!-- Camect Connected: Disconnected/Connected/Synced -->
             <st id="MODE" editor="I_HMODE" /> <!-- Host Mode, DEFAULT, HOME -->
         </sts>
         <cmds>
@@ -53,6 +53,7 @@
         <editors />
         <sts>
             <st id="ST"   editor="bool" /> <!-- Camera Enabled -->
+            <st id="GV1"  editor="bool" /> <!-- Camera Online -->
             <st id="ALARM" editor="bool" /> <!-- Object Detected -->
             <st id="MODE" editor="bool" /> <!-- Alerts Enabled -->
             <st id="GPV"  editor="bool" /> <!-- Streaming Enabled -->

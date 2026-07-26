@@ -35,6 +35,11 @@ ST-host-ST-NAME = Camect Connected
 ST-host-MODE-NAME = Mode
 CMD-host-SET_MODE-NAME = Set Mode
 
+# Host connection status (UOM 25)
+HST-0 = Disconnected
+HST-1 = Connected
+HST-2 = Synced
+
 HMODE--1 = Mixed
 HMODE-0 = Default
 HMODE-1 = Home
@@ -45,6 +50,7 @@ HMODE-1 = Home
 #
 ND-camera-NAME = Camect Camera
 ST-camera-ST-NAME = Enabled
+ST-camera-GV1-NAME = Online
 CMD-camera-DON-NAME = Enable Alert
 CMD-camera-DOF-NAME = Disable Alert
 CMD-camera-SET_ALERT-NAME = Set Alerting
